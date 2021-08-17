@@ -139,6 +139,35 @@ do
     }
   end
 
+  GroupCharms = Settings.group {
+    name="Charms settings",
+    id="charms",
+    desc="Settings relating to Misc (Charms) slots",
+    order=1.5
+  }
+
+  do
+    MaxNewCharms = Settings.shared.number {
+      name="Max new charms",
+      id="charms.new",
+      desc="How many new charms can be added per floor?",
+      default=1,
+      minimum=0,
+      maximum=100,
+      order=1
+    }
+
+    MaxCharmsForNew = Settings.shared.number {
+      name="Max charms from new",
+      id="charms.max",
+      desc="How many charms are allowed without collecting more outside the mod?",
+      default=-1,
+      minimum=-1,
+      maximum=100,
+      order=2
+    }
+  end
+
   GroupFloors = Settings.group {
     name="Allowed floors",
     id="floors",
