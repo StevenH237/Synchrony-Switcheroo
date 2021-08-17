@@ -19,6 +19,7 @@ local SlotIDs = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "A
 
 local nonPool     = {RingWonder=true, CharmLuck=true, MiscPotion=true}
 local neverDelete = {SpellTransform=true}
+local instakill   = {RingBecoming=true, HeadGlassJaw=true}
 
 -- NOTE: This mod adds the player number to this channel so that rolls can remain the same per player.
 -- For example, player 1 uses channel 23701, player 2 uses 23702, etc.
@@ -357,6 +358,14 @@ do
     order=6,
     default=true
   }
+
+  ForbidInstakill = Settings.shared.bool {
+    name="Forbid instakill items",
+    id="instakill",
+    desc="Should items that can cause instant death be banned from the mod?",
+    order=7,
+    default=true
+  }
 end
 
 ---------------
@@ -482,10 +491,11 @@ local function genItemQuick(rngSeed, genStrs, slot)
   local item
   for i, v in ipairs(genStrs) do
     item = ItemGeneration.weightedChoice(rngSeed, v, 0, slot)
-    if item then return item end
+    if item then break end
   end
-  item = ItemGeneration.weightedChoice(rngSeed, "secret", 0, slot)
-  if not item then print("No item generated for " .. slot) end
+  if not item then item = ItemGeneration.weightedChoice(rngSeed, "secret", 0, slot) end
+  if not item then print("No item generated for " .. slot) return nil end
+  if ForbidInstakill and instakill[item] then return genItemQuick(rngSeed, genStrs, slot) end
   return item
 end
 
