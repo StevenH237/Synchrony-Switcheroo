@@ -1,0 +1,15 @@
+{
+	"name": "Switcheroo",
+	"displayName": "Switcheroo",
+	"version": "1.0.0",
+	"synchronyVersion": "0.37",
+	"description": "Changes your build throughout the run! Inspired by Build Mutator.",
+	"author": "Nixill",
+	"dependencies": {},
+	"api": {
+		"scriptPath": "scripts"
+	},
+	"icon": "SwitcherooIcon.png",
+	"banner": "SwitcherooBanner.png",
+	"tags": []
+}
