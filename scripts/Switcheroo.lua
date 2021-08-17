@@ -57,6 +57,10 @@ do
     Menu.close()
   end
 
+  local function noLimit(value)
+    return value == -1 and "No limit" or value
+  end
+
   GroupChance = Settings.group {
     name="Slot chances",
     id="chance",
@@ -104,7 +108,7 @@ do
       desc="Minimum number of slots to fill.",
       default=0,
       minimum=0,
-      maximum=100,
+      maximum=10000,
       step=1,
       order=3
     }
@@ -117,6 +121,7 @@ do
       minimum=-1,
       maximum=10000,
       step=1,
+      format=noLimit,
       order=4
     }
   end
@@ -136,6 +141,36 @@ do
       desc="Can the mod override the " .. Slots[i]:lower() .. "  slot",
       order=i,
       default=true
+    }
+  end
+
+  GroupCharms = Settings.group {
+    name="Charms settings",
+    id="charms",
+    desc="Settings relating to Misc (Charms) slots",
+    order=1.5
+  }
+
+  do
+    MaxNewCharms = Settings.shared.number {
+      name="Max new charms",
+      id="charms.new",
+      desc="How many new charms can be added per floor?",
+      default=1,
+      minimum=0,
+      maximum=100,
+      order=1
+    }
+
+    MaxCharmsForNew = Settings.shared.number {
+      name="Max charms from new",
+      id="charms.max",
+      desc="How many charms are allowed without collecting more outside the mod?",
+      default=5,
+      minimum=-1,
+      maximum=100,
+      format=noLimit,
+      order=2
     }
   end
 
@@ -324,6 +359,20 @@ do
   }
 end
 
+---------------
+-- FUNCTIONS --
+---------------
+
+local function median(a, b, c)
+  if (a >= b and b >= c) then return b
+  elseif (a <= b and b <= c) then return b
+  elseif (b <= a and a <= c) then return a
+  elseif (b >= a and a >= c) then return a
+  elseif (a >= c and c >= b) then return c
+  elseif (a <= c and c <= b) then return b
+  end
+end
+
 ----------------
 -- EVENT CODE --
 ----------------
@@ -343,7 +392,12 @@ local function getSelectableSlots(player)
 
         -- Get the current item(s) in the slot
         local items = Inventory.getItemsInSlot(player, slot)
-        if slot == "misc" then topIndex = #items + 1
+        if slot == "misc" then
+          -- For charms, we need to pick the median of the following:
+          -- • The number of charms the player already holds
+          -- • That plus MaxNewCharms
+          -- • The value of MaxCharmsForNew
+          topIndex = median(#items, #items + MaxNewCharms, MaxCharmsForNew)
         elseif #items > 1 then topIndex = #items end
 
         -- Iterate over the subslots
