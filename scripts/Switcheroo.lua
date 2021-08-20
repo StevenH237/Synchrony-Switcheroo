@@ -4,6 +4,7 @@ local Entities        = require "system.game.Entities"
 local Enum            = require "system.utils.Enum"
 local Event           = require "necro.event.Event"
 local Inventory       = require "necro.game.item.Inventory"
+local ItemBans        = require "necro.game.item.ItemBans"
 local ItemGeneration  = require "necro.game.item.ItemGeneration"
 local Menu            = require "necro.menu.Menu"
 local Player          = require "necro.game.character.Player"
@@ -42,6 +43,12 @@ local enumGenType = Enum.sequence {
   PURPLE_CHEST=6,
   BLACK_CHEST=7,
   CONJURER=8
+}
+
+local slotType = Enum.sequence {
+  NO=0,
+  YES=1,
+  UNLOCKED=2
 }
 
 ----------------------
@@ -136,12 +143,13 @@ do
 
   -- This loop generates a toggle for every slot.
   for i, v in ipairs(SlotIDs) do
-    _G["Slot" .. v .. "Allowed"] = Settings.shared.bool {
+    _G["Slot" .. v .. "Allowed"] = Settings.shared.enum {
       name=Slots[i],
       id="slots." .. v:lower(),
       desc="Can the mod override the " .. Slots[i]:lower() .. "  slot",
       order=i,
-      default=true
+      enum=slotType,
+      default=slotType.YES
     }
   end
 
@@ -392,7 +400,8 @@ local function getSelectableSlots(player)
   for i, v in ipairs(SlotIDs) do
     local slot = v:lower()
     -- Check that slot is allowed by mod settings
-    if _G["Slot" .. v .. "Allowed"] then
+    local allowed = _G["Slot" .. v .. "Allowed"]
+    if allowed ~= slotType.NO then
       -- Check that the slot is not cursed
       if not Inventory.isCursedSlot(player, slot) then
         -- Now divide the slot into individual pieces, if necessary
@@ -415,15 +424,19 @@ local function getSelectableSlots(player)
 
           if not item then
             -- If the slot is empty, make sure we can pick empty slots
+            -- A 0% chance overrides minimums
             if EmptySlotChance > 0 then
               table.insert(slots, {slot, i2})
             end
           else
             -- If the slot is full, make sure we can pick full slots
-            -- A 0% chance overrides minimums
             if FilledSlotChance > 0 then
               -- Also make sure it's not an ignored item
               if not (neverDelete[item.name] or (nonPool[item.name] and IgnoreNonPool)) then
+                -- Or an item forbidden from dropping, if we're respecting bans
+                if allowed ~= slotType.UNLOCKED then
+                  bans = 
+                end
                 table.insert(slots, {slot, i2, item})
               end
             end
