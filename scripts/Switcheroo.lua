@@ -397,8 +397,8 @@ local function median(a, b, c)
 end
 
 local function checkFlags(value, test, all)
-  if all then return value & test == test
-  else return value & test ~= 0 end
+  if all then return bit.band(value, test) == test
+  else return bit.band(value, test) ~= 0 end
 end
 
 ----------------
@@ -455,7 +455,7 @@ local function getSelectableSlots(player)
         if allowed ~= slotType.UNLOCKED then
           local bans = ItemBan.getBanFlags(player, item)
 
-          if checkFlags(bans, ItemBan.Flag.LOSS_DROP | ItemBan.Flag.CONVERT_SHRINE | ItemBan.Flag.CONVERT_SPELL | ItemBan.Flag.CONVERT_TRANSACTION, false) then
+          if checkFlags(bans, ItemBan.Flag.PICKUP + ItemBan.Flag.LOSS_DROP + ItemBan.Flag.CONVERT_SHRINE + ItemBan.Flag.CONVERT_SPELL + ItemBan.Flag.CONVERT_TRANSACTION, false) then
             goto gssSlotContinue
           end
 
@@ -558,9 +558,9 @@ end
   end
 ]]
 
-local function generateItem(rngSeed, genType, slot, player)
+local function generateItem(rngSeed, slot, player)
   local item
-  
+
   for i = 1, 5 do -- TODO replace "5" with a setting
     item = ItemGeneration.weightedChoice(rngSeed, GenTypes[GeneratorType], 0, slot:lower()) -- TODO replace "0" with a setting
 
@@ -570,7 +570,7 @@ local function generateItem(rngSeed, genType, slot, player)
     -- Are we checking bans?
     if _G["Slot" .. slot .. "Allowed"] == slotType.YES then
       local flags = ItemBan.getBanFlags(player, item)
-      if checkFlags(flags | 4194304, GenFlags[GeneratorType], false) then goto genItemContinue end
+      if checkFlags(flags + 4194304, GenFlags[GeneratorType], false) then goto genItemContinue end
     end
 
     if ForbidInstakill and instakill[item] then goto genItemContinue end
@@ -581,6 +581,7 @@ local function generateItem(rngSeed, genType, slot, player)
   end
 
   if not item then print("No item generated for " .. slot) return nil end
+  return item
 end
 
 local function restockSlots(playerNum, player, slots)
@@ -593,7 +594,7 @@ local function restockSlots(playerNum, player, slots)
       if v[3] then
         Inventory.grant(v[3], player)
       else
-        local iType = generateItem(rngSeed, GeneratorType, v[1])
+        local iType = generateItem(rngSeed, v[1], player)
         if iType then Inventory.grant(iType, player) end
       end
     else
