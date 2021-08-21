@@ -4,7 +4,7 @@ local Entities        = require "system.game.Entities"
 local Enum            = require "system.utils.Enum"
 local Event           = require "necro.event.Event"
 local Inventory       = require "necro.game.item.Inventory"
-local ItemBans        = require "necro.game.item.ItemBans"
+local ItemBan         = require "necro.game.item.ItemBan"
 local ItemGeneration  = require "necro.game.item.ItemGeneration"
 local Menu            = require "necro.menu.Menu"
 local Player          = require "necro.game.character.Player"
@@ -17,6 +17,9 @@ local Utilities       = require "system.utils.Utilities"
 
 local Slots   = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Item", "Spells", "Charms"}
 local SlotIDs = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Action", "Spell", "Misc"}
+
+local GenTypes = {"chest", "lockedChest", "shop", "lockedShop", "urn", "redChest", "purpleChest", "blackChest", "secret"}
+local GenFlags = {32768, 32768, 32768, 32768, 65536, 32768, 32768, 32768, 2359296}
 
 local nonPool     = {RingWonder=true, CharmLuck=true, MiscPotion=true}
 local neverDelete = {SpellTransform=true}
@@ -34,15 +37,15 @@ end
 -----------
 
 local enumGenType = Enum.sequence {
-  CHEST=0,
-  LOCKED_CHEST=1,
-  SHOP=2,
-  LOCKED_SHOP=3,
-  URN=4,
-  RED_CHEST=5,
-  PURPLE_CHEST=6,
-  BLACK_CHEST=7,
-  CONJURER=8
+  CHEST=1,
+  LOCKED_CHEST=2,
+  SHOP=3,
+  LOCKED_SHOP=4,
+  URN=5,
+  RED_CHEST=6,
+  PURPLE_CHEST=7,
+  BLACK_CHEST=8,
+  CONJURER=9
 }
 
 local slotType = Enum.sequence {
@@ -343,12 +346,15 @@ do
     default=enumGenType.CONJURER
   }
 
-  SellItems = Settings.shared.bool {
+  SellItems = Settings.shared.percent {
     name="Sell items",
     id="sell",
     desc="Should destroyed items be sold and the profits given to the player?",
     order=4,
-    default=false
+    minimum=0,
+    maximum=2,
+    step=0.1,
+    default=0
   }
 
   GuaranteedTransmute = Settings.shared.bool {
@@ -390,6 +396,11 @@ local function median(a, b, c)
   end
 end
 
+local function checkFlags(value, test, all)
+  if all then return value & test == test
+  else return value & test ~= 0 end
+end
+
 ----------------
 -- EVENT CODE --
 ----------------
@@ -399,51 +410,67 @@ local function getSelectableSlots(player)
 
   for i, v in ipairs(SlotIDs) do
     local slot = v:lower()
+
     -- Check that slot is allowed by mod settings
     local allowed = _G["Slot" .. v .. "Allowed"]
-    if allowed ~= slotType.NO then
-      -- Check that the slot is not cursed
-      if not Inventory.isCursedSlot(player, slot) then
-        -- Now divide the slot into individual pieces, if necessary
-        local topIndex = 1
-        if slot == "spell" then topIndex = 2 end
+    if allowed == slotType.NO then goto gssContinue end
 
-        -- Get the current item(s) in the slot
-        local items = Inventory.getItemsInSlot(player, slot)
-        if slot == "misc" then
-          -- For charms, we need to pick the median of the following:
-          -- • The number of charms the player already holds
-          -- • That plus MaxNewCharms
-          -- • The value of MaxCharmsForNew
-          topIndex = median(#items, #items + MaxNewCharms, MaxCharmsForNew)
-        elseif #items > 1 then topIndex = #items end
+    -- Check that the slot is not cursed
+    if Inventory.isCursedSlot(player, slot) then goto gssContinue end
 
-        -- Iterate over the subslots
-        for i2 = 1, topIndex do
-          local item = items[i2]
+    -- Now divide the slot into individual pieces, if necessary
+    local topIndex = 1
+    if slot == "spell" then topIndex = 2 end
 
-          if not item then
-            -- If the slot is empty, make sure we can pick empty slots
-            -- A 0% chance overrides minimums
-            if EmptySlotChance > 0 then
-              table.insert(slots, {slot, i2})
-            end
-          else
-            -- If the slot is full, make sure we can pick full slots
-            if FilledSlotChance > 0 then
-              -- Also make sure it's not an ignored item
-              if not (neverDelete[item.name] or (nonPool[item.name] and IgnoreNonPool)) then
-                -- Or an item forbidden from dropping, if we're respecting bans
-                if allowed ~= slotType.UNLOCKED then
-                  bans = 
-                end
-                table.insert(slots, {slot, i2, item})
-              end
-            end
+    -- Get the current item(s) in the slot
+    local items = Inventory.getItemsInSlot(player, slot)
+    if slot == "misc" then
+      -- For charms, we need to pick the median of the following:
+      -- • The number of charms the player already holds
+      -- • That plus MaxNewCharms
+      -- • The value of MaxCharmsForNew
+      topIndex = median(#items, #items + MaxNewCharms, MaxCharmsForNew)
+    elseif #items > 1 then topIndex = #items end
+
+    -- Iterate over the subslots
+    for i2 = 1, topIndex do
+      local item = items[i2]
+
+      if not item then
+        -- If the slot is empty, make sure we can pick empty slots
+        -- A 0% chance overrides minimums
+        if EmptySlotChance > 0 then
+          table.insert(slots, {v, i2})
+        end
+      else
+        -- If the slot is full, make sure we can pick full slots
+        if FilledSlotChance == 0 then goto gssSlotContinue end
+
+        -- Also make sure it's not an ignored item
+        if neverDelete[item.name] or (nonPool[item.name] and IgnoreNonPool) then goto gssSlotContinue end
+
+        local value = {v, i2, item}
+
+        -- Or an item forbidden from dropping, if we're respecting bans
+        if allowed ~= slotType.UNLOCKED then
+          local bans = ItemBan.getBanFlags(player, item)
+
+          if checkFlags(bans, ItemBan.Flag.LOSS_DROP | ItemBan.Flag.CONVERT_SHRINE | ItemBan.Flag.CONVERT_SPELL | ItemBan.Flag.CONVERT_TRANSACTION, false) then
+            goto gssSlotContinue
+          end
+
+          if checkFlags(bans, ItemBan.Flag.LOSS_SELL) then
+            value[4] = true
           end
         end
+
+        table.insert(slots, value)
       end
+
+      ::gssSlotContinue::
     end
+
+    ::gssContinue::
   end
 
   return slots
@@ -469,8 +496,8 @@ local function selectAndClearSlots(playerNum, player, slots)
         local newSlot = {v[1], v[2]}
 
         -- Are we selling items?
-        if SellItems then
-          local price = getItemPrice(v[3])
+        if SellItems > 0 and not v[4] then
+          local price = getItemPrice(v[3]) * SellItems
           Currency.add(player, Currency.Type.GOLD, price)
         end
 
@@ -500,30 +527,49 @@ local function selectAndClearSlots(playerNum, player, slots)
   return output
 end
 
-local function genItemQuick(rngSeed, genStrs, slot)
-  local item
-  for i, v in ipairs(genStrs) do
-    item = ItemGeneration.weightedChoice(rngSeed, v, 0, slot)
-    if item then break end
-  end
-  if not item then item = ItemGeneration.weightedChoice(rngSeed, "secret", 0, slot) end
-  if not item then print("No item generated for " .. slot) return nil end
-  if ForbidInstakill and instakill[item] then return genItemQuick(rngSeed, genStrs, slot) end
-  return item
-end
+--[[
+  local function genItemQuick(rngSeed, genStrs, slot, player)
+    for i=1, 5 do
+      local item
+      for _, v in ipairs(genStrs) do
+        item = ItemGeneration.weightedChoice(rngSeed, v, 0, slot)
+        if item then break end
+      end
+      if not item then item = ItemGeneration.weightedChoice(rngSeed, "secret", 0, slot) end
+      if not item then print("No item generated for " .. slot) return nil end
+      if ForbidInstakill and instakill[item] then return genItemQuick(rngSeed, genStrs, slot) end
 
-local function generateItem(rngSeed, genType, slot)
-  if genType == enumGenType.CHEST then return genItemQuick(rngSeed, {"chest"}, slot)
-  elseif genType == enumGenType.LOCKED_CHEST then return genItemQuick(rngSeed, {"lockedChest", "chest"}, slot)
-  elseif genType == enumGenType.SHOP then return genItemQuick(rngSeed, {"shop"}, slot)
-  elseif genType == enumGenType.LOCKED_SHOP then return genItemQuick(rngSeed, {"lockedShop", "shop"}, slot)
-  elseif genType == enumGenType.URN then return genItemQuick(rngSeed, {"urn", "chest"}, slot)
-  elseif genType == enumGenType.RED_CHEST then return genItemQuick(rngSeed, {"redChest", "lockedChest", "chest"}, slot)
-  elseif genType == enumGenType.PURPLE_CHEST then return genItemQuick(rngSeed, {"purpleChest", "lockedChest", "chest"}, slot)
-  elseif genType == enumGenType.BLACK_CHEST then return genItemQuick(rngSeed, {"blackChest", "lockedChest", "chest"}, slot)
+      return item
+    end
   end
 
-  return genItemQuick(rngSeed, {}, slot)
+  local function generateItem(rngSeed, genType, slot)
+    if genType == enumGenType.CHEST then return genItemQuick(rngSeed, {"chest"}, slot)
+    elseif genType == enumGenType.LOCKED_CHEST then return genItemQuick(rngSeed, {"lockedChest", "chest"}, slot)
+    elseif genType == enumGenType.SHOP then return genItemQuick(rngSeed, {"shop"}, slot)
+    elseif genType == enumGenType.LOCKED_SHOP then return genItemQuick(rngSeed, {"lockedShop", "shop"}, slot)
+    elseif genType == enumGenType.URN then return genItemQuick(rngSeed, {"urn", "chest"}, slot)
+    elseif genType == enumGenType.RED_CHEST then return genItemQuick(rngSeed, {"redChest", "lockedChest", "chest"}, slot)
+    elseif genType == enumGenType.PURPLE_CHEST then return genItemQuick(rngSeed, {"purpleChest", "lockedChest", "chest"}, slot)
+    elseif genType == enumGenType.BLACK_CHEST then return genItemQuick(rngSeed, {"blackChest", "lockedChest", "chest"}, slot)
+    end
+
+    return genItemQuick(rngSeed, {}, slot)
+  end
+]]
+
+local function generateItem(rngSeed, genType, slot, player)
+  for i = 1, 5 do -- TODO replace "5" with a setting
+    local item = ItemGeneration.weightedChoice(rngSeed, GenTypes[GeneratorType], 0, slot:lower()) -- TODO replace "0" with a setting
+
+    -- Are we checking bans?
+    if _G["Slot" .. slot .. "Allowed"] == slotType.YES then
+      local flags = ItemBan.getBanFlags(player, item)
+      if checkFlags(flags | 4194304, GenFlags[GeneratorType], false) then goto genItemContinue end
+    end
+
+    ::genItemContinue::
+  end
 end
 
 local function restockSlots(playerNum, player, slots)
@@ -540,9 +586,9 @@ local function restockSlots(playerNum, player, slots)
         if iType then Inventory.grant(iType, player) end
       end
     else
-      if v[1] == "shovel" then
+      if v[1] == "Shovel" then
         Inventory.grant("ShovelBasic", player)
-      elseif v[1] == "weapon" then
+      elseif v[1] == "Weapon" then
         Inventory.grant("WeaponDagger", player)
       end
     end
@@ -555,24 +601,24 @@ Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
     local z = CurrentLevel.getZone()
     local l = CurrentLevel.getFloor()
     if not _G["Level" .. z .. l] then return end
-    
+
     -- Shortcut if maximum is zero
     if SlotMaximum == 0 then return end
-    
+
     for i, p in ipairs(Player.getPlayerEntities()) do
       p.descentDamageImmunity.active = true
       local seenItems = Utilities.fastCopy(RunState.getState().seenItems)
-      
-      -- After this method, slots is {{"slot", index, containsItem|nil}, {"slot", index, containsItem|nil}}
+
+      -- After this method, slots is {{"slot", index, containsItem|nil, banSell|nil}, {"slot", index, containsItem|nil, banSell|nil}}
       local slots = getSelectableSlots(p)
-      
+
       -- Shortcut if no slots are selectable
       if #slots == 0 then return end
-      
+
       -- After this method, slots is {{"slot", index, guaranteedItem|nil}, {"slot", index, guaranteedItem|nil}}
       slots = selectAndClearSlots(i, p, slots)
       restockSlots(i, p, slots)
-      
+
       RunState.getState().seenItems = seenItems
       p.descentDamageImmunity.active = false
     end
