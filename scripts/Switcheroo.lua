@@ -559,8 +559,13 @@ end
 ]]
 
 local function generateItem(rngSeed, genType, slot, player)
+  local item
+  
   for i = 1, 5 do -- TODO replace "5" with a setting
-    local item = ItemGeneration.weightedChoice(rngSeed, GenTypes[GeneratorType], 0, slot:lower()) -- TODO replace "0" with a setting
+    item = ItemGeneration.weightedChoice(rngSeed, GenTypes[GeneratorType], 0, slot:lower()) -- TODO replace "0" with a setting
+
+    -- Does an item actually exist?
+    if not item then goto genItemContinue end
 
     -- Are we checking bans?
     if _G["Slot" .. slot .. "Allowed"] == slotType.YES then
@@ -568,8 +573,14 @@ local function generateItem(rngSeed, genType, slot, player)
       if checkFlags(flags | 4194304, GenFlags[GeneratorType], false) then goto genItemContinue end
     end
 
+    if ForbidInstakill and instakill[item] then goto genItemContinue end
+
+    if item then break end
+
     ::genItemContinue::
   end
+
+  if not item then print("No item generated for " .. slot) return nil end
 end
 
 local function restockSlots(playerNum, player, slots)
