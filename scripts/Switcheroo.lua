@@ -68,6 +68,14 @@ do
     Menu.close()
   end
 
+  local function setSlots(data)
+    for i, v in ipairs(SlotIDs) do
+      SettingsStorage.set("mod.Switcheroo.slots." .. v:lower(), data, Settings.Layer.REMOTE_PENDING)
+    end
+
+    Menu.close()
+  end
+
   local function noLimit(value)
     return value == -1 and "No limit" or value
   end
@@ -143,6 +151,45 @@ do
     desc="Which slots can be selected and overridden by the mod",
     order=1
   }
+
+  GroupSlotSet = Settings.group {
+    name="Set all...",
+    id="slots.all",
+    desc="Select a value and set all slots to that value",
+    order=0
+  }
+
+  do
+    PresetSlotsNo = Settings.shared.action {
+      name="No",
+      id="slots.all.no",
+      desc="Disables every slot for Switcheroo",
+      order=0,
+      action=function()
+        setSlots(slotType.NO)
+      end
+    }
+
+    PresetSlotsYes = Settings.shared.action {
+      name="Yes",
+      id="slots.all.yes",
+      desc="Enables every slot for Switcheroo",
+      order=1,
+      action=function()
+        setSlots(slotType.YES)
+      end
+    }
+
+    PresetSlotsNo = Settings.shared.action {
+      name="Unlocked",
+      id="slots.all.unlock",
+      desc="Unlocks every slot for Switcheroo",
+      order=2,
+      action=function()
+        setSlots(slotType.UNLOCKED)
+      end
+    }
+  end
 
   -- This loop generates a toggle for every slot.
   for i, v in ipairs(SlotIDs) do
@@ -527,37 +574,6 @@ local function selectAndClearSlots(playerNum, player, slots)
   return output
 end
 
---[[
-  local function genItemQuick(rngSeed, genStrs, slot, player)
-    for i=1, 5 do
-      local item
-      for _, v in ipairs(genStrs) do
-        item = ItemGeneration.weightedChoice(rngSeed, v, 0, slot)
-        if item then break end
-      end
-      if not item then item = ItemGeneration.weightedChoice(rngSeed, "secret", 0, slot) end
-      if not item then print("No item generated for " .. slot) return nil end
-      if ForbidInstakill and instakill[item] then return genItemQuick(rngSeed, genStrs, slot) end
-
-      return item
-    end
-  end
-
-  local function generateItem(rngSeed, genType, slot)
-    if genType == enumGenType.CHEST then return genItemQuick(rngSeed, {"chest"}, slot)
-    elseif genType == enumGenType.LOCKED_CHEST then return genItemQuick(rngSeed, {"lockedChest", "chest"}, slot)
-    elseif genType == enumGenType.SHOP then return genItemQuick(rngSeed, {"shop"}, slot)
-    elseif genType == enumGenType.LOCKED_SHOP then return genItemQuick(rngSeed, {"lockedShop", "shop"}, slot)
-    elseif genType == enumGenType.URN then return genItemQuick(rngSeed, {"urn", "chest"}, slot)
-    elseif genType == enumGenType.RED_CHEST then return genItemQuick(rngSeed, {"redChest", "lockedChest", "chest"}, slot)
-    elseif genType == enumGenType.PURPLE_CHEST then return genItemQuick(rngSeed, {"purpleChest", "lockedChest", "chest"}, slot)
-    elseif genType == enumGenType.BLACK_CHEST then return genItemQuick(rngSeed, {"blackChest", "lockedChest", "chest"}, slot)
-    end
-
-    return genItemQuick(rngSeed, {}, slot)
-  end
-]]
-
 local function generateItem(rngSeed, slot, player)
   local item
 
@@ -588,6 +604,7 @@ local function restockSlots(playerNum, player, slots)
   local rngSeed = getChannel(playerNum)
 
   for i, v in ipairs(slots) do
+    local success = false
     -- Roll the spawn chance first
     if RNG.roll(SlotFillChance, rngSeed) then
       -- If we have a guaranteed item, use it.
@@ -595,9 +612,14 @@ local function restockSlots(playerNum, player, slots)
         Inventory.grant(v[3], player)
       else
         local iType = generateItem(rngSeed, v[1], player)
-        if iType then Inventory.grant(iType, player) end
+        if iType then
+          Inventory.grant(iType, player)
+          success = true
+        end
       end
-    else
+    end
+
+    if not success then
       if v[1] == "Shovel" then
         Inventory.grant("ShovelBasic", player)
       elseif v[1] == "Weapon" then
