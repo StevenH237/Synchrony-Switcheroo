@@ -12,6 +12,7 @@ local RNG             = require "necro.game.system.RNG"
 local RunState        = require "necro.game.system.RunState"
 local Settings        = require "necro.config.Settings"
 local SettingsStorage = require "necro.config.SettingsStorage"
+local Snapshot        = require "necro.game.system.Snapshot"
 local Try             = require "system.utils.Try"
 local Utilities       = require "system.utils.Utilities"
 
@@ -35,6 +36,12 @@ local function getChannel(playerNum)
   return rngChannel + playerNum -- TODO replace this with entity-based system
 end
 
+---------------
+-- SNAPSHOTS --
+---------------
+
+FirstGen = Snapshot.runVariable(true)
+
 -----------
 -- ENUMS --
 -----------
@@ -55,7 +62,10 @@ local enumGenType = Enum.sequence {
 local slotType = Enum.sequence {
   NO=0,
   YES=1,
-  UNLOCKED=2
+  UNLOCKED=2,
+  ONCE=3,
+  UNLOCKED_ONCE_THEN_YES=4,
+  UNLOCKED_ONCE_THEN_NO=5
 }
 
 ----------------------
@@ -452,9 +462,9 @@ local function checkFlags(value, test, all)
   else return bit.band(value, test) ~= 0 end
 end
 
-----------------
--- EVENT CODE --
-----------------
+---------------------
+-- EVENT FUNCTIONS --
+---------------------
 
 local function getSelectableSlots(player)
   local slots = {}
@@ -465,6 +475,7 @@ local function getSelectableSlots(player)
     -- Check that slot is allowed by mod settings
     local allowed = _G["Slot" .. v .. "Allowed"]
     if allowed == slotType.NO then goto gssContinue end
+    if (not FirstGen) and (allowed == slotType.ONCE or allowed == slotType.UNLOCKED_ONCE_THEN_NO) then goto gssContinue end
 
     -- Check that the slot is not cursed
     if Inventory.isCursedSlot(player, slot) then goto gssContinue end
@@ -579,8 +590,6 @@ local function selectAndClearSlots(playerNum, player, slots)
 end
 
 local function generateItem(rngSeed, slot, player)
-  local item
-
   local choiceOpts = {
     channel = rngSeed,
     slot = slot:lower(),
@@ -591,7 +600,7 @@ local function generateItem(rngSeed, slot, player)
   }
 
   -- Are we checking bans?
-  if _G["Slot" .. slot .. "Allowed"] == slotType.YES then
+  if _G["Slot" .. slot .. "Allowed"] == slotType.YES or ((not FirstGen) and _G["Slot" .. slot .. "Allowed"] == slotType.UNLOCKED_ONCE_THEN_YES) then
     choiceOpts.player = player
     choiceOpts.banMask = GenFlags[GeneratorType]
   end
@@ -634,6 +643,10 @@ local function restockSlots(playerNum, player, slots)
     end
   end
 end
+
+--------------------
+-- EVENT HANDLERS --
+--------------------
 
 Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
   Try.catch(function()
