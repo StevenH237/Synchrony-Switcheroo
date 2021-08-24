@@ -1,7 +1,7 @@
 {
 	"name": "Switcheroo",
 	"displayName": "Switcheroo",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"synchronyVersion": "0.37",
 	"description": "Changes your build throughout the run! Inspired by Build Mutator.",
 	"author": "Nixill",
