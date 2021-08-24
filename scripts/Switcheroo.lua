@@ -601,6 +601,8 @@ local function generateItem(rngSeed, slot, player)
     choiceOpts.excludedComponents = {"itemIncomingDamageIncrease"}
   end
 
+  local item = ItemGeneration.choice(choiceOpts)
+
   return item
 end
 
