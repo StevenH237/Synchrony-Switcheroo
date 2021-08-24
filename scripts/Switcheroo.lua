@@ -15,15 +15,18 @@ local SettingsStorage = require "necro.config.SettingsStorage"
 local Try             = require "system.utils.Try"
 local Utilities       = require "system.utils.Utilities"
 
-local Slots   = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Item", "Spells", "Charms"}
-local SlotIDs = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Action", "Spell", "Misc"}
+local Slots    = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Item", "Spells", "Charms"}
+local SlotIDs  = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Action", "Spell", "Misc"}
+local Defaults = {Shovel="ShovelBasic", Weapon="WeaponDagger"}
 
-local GenTypes = {"chest", "lockedChest", "shop", "lockedShop", "urn", "redChest", "purpleChest", "blackChest", "secret"}
-local GenFlags = {32768, 32768, 32768, 32768, 65536, 32768, 32768, 32768, 2359296}
+local GenTypes = {[0]=nil, "chest", "lockedChest", "shop", "lockedShop", "urn", "redChest", "purpleChest", "blackChest", "secret"}
+local GenFlags = {[0]=4227073, 4227073, 4227073, 4227073, 4227073, 4259841, 4227073, 4227073, 4227073, 6553601}
+-- 4227073: PICKUP + PICKUP_DEATH + GENERATE_ITEM_POOL
+-- 4259841: PICKUP + PICKUP_DEATH + GENERATE_CRATE
+-- 6553601: PICKUP + PICKUP_DEATH + GENERATE_SHRINE_POOL + GENERATE_TRANSACTION
 
 local nonPool     = {RingWonder=true, CharmLuck=true, MiscPotion=true}
 local neverDelete = {SpellTransform=true}
-local instakill   = {RingBecoming=true, HeadGlassJaw=true}
 
 -- NOTE: This mod adds the player number to this channel so that rolls can remain the same per player.
 -- For example, player 1 uses channel 23701, player 2 uses 23702, etc.
@@ -37,6 +40,7 @@ end
 -----------
 
 local enumGenType = Enum.sequence {
+  UNWEIGHTED=0,
   CHEST=1,
   LOCKED_CHEST=2,
   SHOP=3,
@@ -577,26 +581,26 @@ end
 local function generateItem(rngSeed, slot, player)
   local item
 
-  for i = 1, 5 do -- TODO replace "5" with a setting
-    item = ItemGeneration.weightedChoice(rngSeed, GenTypes[GeneratorType], 0, slot:lower()) -- TODO replace "0" with a setting
+  local choiceOpts = {
+    channel = rngSeed,
+    slot = slot:lower(),
+    chanceType = GenTypes[GeneratorType],
+    levelBonus = 0, -- TODO replace this with a setting
+    seenItems = {},
+    default = Defaults[slot]
+  }
 
-    -- Does an item actually exist?
-    if not item then goto genItemContinue end
-
-    -- Are we checking bans?
-    if _G["Slot" .. slot .. "Allowed"] == slotType.YES then
-      local flags = ItemBan.getBanFlags(player, item)
-      if checkFlags(flags + 4194304, GenFlags[GeneratorType], false) then goto genItemContinue end
-    end
-
-    if ForbidInstakill and instakill[item] then goto genItemContinue end
-
-    if item then break end
-
-    ::genItemContinue::
+  -- Are we checking bans?
+  if _G["Slot" .. slot .. "Allowed"] == slotType.YES then
+    choiceOpts.player = player
+    choiceOpts.banMask = GenFlags[GeneratorType]
   end
 
-  if not item then print("No item generated for " .. slot) return nil end
+  -- Are we excluding instakill items?
+  if ForbidInstakill then
+    choiceOpts.excludedComponents = {"itemIncomingDamageIncrease"}
+  end
+
   return item
 end
 
@@ -632,9 +636,9 @@ end
 Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
   Try.catch(function()
     -- Make sure the mod should activate on this level
-    local z = CurrentLevel.getZone()
+    local d = CurrentLevel.getDepth()
     local l = CurrentLevel.getFloor()
-    if not _G["Level" .. z .. l] then return end
+    if not _G["Level" .. d .. l] then return end
 
     -- Shortcut if maximum is zero
     if SlotMaximum == 0 then return end
