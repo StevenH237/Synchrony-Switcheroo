@@ -514,7 +514,7 @@ local function getSelectableSlots(player)
         local value = {v, i2, item}
 
         -- Or an item forbidden from dropping, if we're respecting bans
-        if allowed ~= slotType.UNLOCKED then
+        if allowed == slotType.YES or ((not FirstGen) and allowed == slotType.UNLOCKED_ONCE_THEN_YES) then
           local bans = ItemBan.getBanFlags(player, item)
 
           if checkFlags(bans, ItemBan.Flag.PICKUP + ItemBan.Flag.LOSS_DROP + ItemBan.Flag.CONVERT_SHRINE + ItemBan.Flag.CONVERT_SPELL + ItemBan.Flag.CONVERT_TRANSACTION, false) then

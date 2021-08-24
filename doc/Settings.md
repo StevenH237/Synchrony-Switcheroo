@@ -17,6 +17,9 @@ This controls which specific slots can be selected to have their items changed. 
   * **No**: This slot cannot be modified by Switcheroo.
   * **Yes**: This slot can be modified by Switcheroo, but item bans are respected.
   * **Unlocked**: This slot can be modified by Switcheroo, ignoring item bans.
+  * **Once**: This slot can be modified by Switcheroo, but only once. Item bans are respected.
+  * **Unlocked Once, Then Yes**: This slot can be modified by Switcheroo. Item bans are respected *except* the first time items are generated.
+  * **Unlocked Once, Then No**: This slot can be modified by Switcheroo, but only once. Item bans are ignored.
 
 # Charms settings
 Charms are tricky! Technically you have infinite slots here, but we don't want to just fill it completely, do we? These settings limit how fast and how much those slots can fill up.
@@ -40,6 +43,8 @@ This page lets you control which floors the mod may activate on. Yes or no influ
 * **First floor of zone**: Every -1 is set to "on"; the rest to "off".
 * **Boss floor of zone**: Every -4 and 5-5 is set to "on"; the rest to "off".
 * **At start of run**: 1-1 is set to "on"; the rest to "off".
+
+Please note that floors are listed by Depth-Level, not Zone-Level. In particular, this means that 1-1 refers to the electric zone when anyone is playing as Aria.
 
 # Other settings
 These settings are just on the first page of settings.
