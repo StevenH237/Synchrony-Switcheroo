@@ -59,7 +59,7 @@ local enumGenType = Enum.sequence {
   CONJURER=9
 }
 
-local slotType = Enum.sequence {
+local enumSlotType = Enum.sequence {
   NO=0,
   YES=1,
   UNLOCKED=2,
@@ -67,6 +67,14 @@ local slotType = Enum.sequence {
   UNLOCKED_ONCE_THEN_YES=4,
   UNLOCKED_ONCE_THEN_NO=5
 }
+
+-- local enumLevelBonus = Enum.sequence {
+--   NEG_CURRENT_FLOOR=-2,
+--   NEG_CURRENT_DEPTH=-1,
+--   NEUTRAL=0,
+--   CURRENT_DEPTH=1,
+--   CURRENT_FLOOR=2
+-- }
 
 ----------------------
 -- SETTINGS SECTION --
@@ -180,7 +188,7 @@ do
       desc="Disables every slot for Switcheroo",
       order=0,
       action=function()
-        setSlots(slotType.NO)
+        setSlots(enumSlotType.NO)
       end
     }
 
@@ -190,7 +198,7 @@ do
       desc="Enables every slot for Switcheroo",
       order=1,
       action=function()
-        setSlots(slotType.YES)
+        setSlots(enumSlotType.YES)
       end
     }
 
@@ -200,7 +208,37 @@ do
       desc="Unlocks every slot for Switcheroo",
       order=2,
       action=function()
-        setSlots(slotType.UNLOCKED)
+        setSlots(enumSlotType.UNLOCKED)
+      end
+    }
+
+    PresetSlotsOnce = Settings.shared.action {
+      name="Once",
+      id="slots.all.once",
+      desc="Enables every slot for Switcheroo once",
+      order=3,
+      action=function()
+        setSlots(enumSlotType.ONCE)
+      end
+    }
+
+    PresetSlotsUnlockedYes = Settings.shared.action {
+      name="Unlocked once, then Yes",
+      id="slots.all.unlock_yes",
+      desc="Unlocks every slot for Switcheroo once, then leaves them enabled",
+      order=4,
+      action=function()
+        setSlots(enumSlotType.UNLOCKED)
+      end
+    }
+
+    PresetSlotsUnlockedNo = Settings.shared.action {
+      name="Unlocked once, then No",
+      id="slots.all.unlock_no",
+      desc="Unlocks every slot for Switcheroo once, then leaves them disabled",
+      order=5,
+      action=function()
+        setSlots(enumSlotType.UNLOCKED)
       end
     }
   end
@@ -212,8 +250,8 @@ do
       id="slots." .. v:lower(),
       desc="Can the mod override the " .. Slots[i]:lower() .. "  slot",
       order=i,
-      enum=slotType,
-      default=slotType.YES
+      enum=enumSlotType,
+      default=enumSlotType.YES
     }
   end
 
@@ -398,6 +436,35 @@ do
     }
   end
 
+  -- LevelBonusGroup = Settings.group {
+  --   name="Level bonus",
+  --   id="bonus",
+  --   desc="Level bonus settings for item generation",
+  --   order=2.5
+  -- }
+
+  -- do
+  --   LevelBonusLinear = Settings.shared.enum {
+  --     name="Linear scaling",
+  --     id="bonus.linear",
+  --     desc="Linear scaling of level bonus",
+  --     order=1,
+  --     enum=enumLevelBonus,
+  --     default=enumLevelBonus.NEUTRAL
+  --   }
+
+  --   LevelBonusFlat = Settings.shared.number {
+  --     name="Plus",
+  --     id="bonus.flat",
+  --     desc="Flat additive to level bonus",
+  --     order=2,
+  --     minimum=-25,
+  --     maximum=25,
+  --     default=0,
+  --     step=1
+  --   }
+  -- end
+
   GeneratorType = Settings.shared.enum {
     name="Generator type",
     id="type",
@@ -474,8 +541,8 @@ local function getSelectableSlots(player)
 
     -- Check that slot is allowed by mod settings
     local allowed = _G["Slot" .. v .. "Allowed"]
-    if allowed == slotType.NO then goto gssContinue end
-    if (not FirstGen) and (allowed == slotType.ONCE or allowed == slotType.UNLOCKED_ONCE_THEN_NO) then goto gssContinue end
+    if allowed == enumSlotType.NO then goto gssContinue end
+    if (not FirstGen) and (allowed == enumSlotType.ONCE or allowed == enumSlotType.UNLOCKED_ONCE_THEN_NO) then goto gssContinue end
 
     -- Check that the slot is not cursed
     if Inventory.isCursedSlot(player, slot) then goto gssContinue end
@@ -514,7 +581,7 @@ local function getSelectableSlots(player)
         local value = {v, i2, item}
 
         -- Or an item forbidden from dropping, if we're respecting bans
-        if allowed == slotType.YES or ((not FirstGen) and allowed == slotType.UNLOCKED_ONCE_THEN_YES) then
+        if allowed == enumSlotType.YES or ((not FirstGen) and allowed == enumSlotType.UNLOCKED_ONCE_THEN_YES) then
           local bans = ItemBan.getBanFlags(player, item)
 
           if checkFlags(bans, ItemBan.Flag.PICKUP + ItemBan.Flag.LOSS_DROP + ItemBan.Flag.CONVERT_SHRINE + ItemBan.Flag.CONVERT_SPELL + ItemBan.Flag.CONVERT_TRANSACTION, false) then
@@ -594,13 +661,24 @@ local function generateItem(rngSeed, slot, player)
     channel = rngSeed,
     slot = slot:lower(),
     chanceType = GenTypes[GeneratorType],
-    levelBonus = 0, -- TODO replace this with a setting
     seenItems = {},
     default = Defaults[slot]
   }
 
+  -- -- Level bonus?
+  -- local levelBonus = 0
+
+  -- if (LevelBonusLinear == enumLevelBonus.NEG_CURRENT_FLOOR) then levelBonus = -CurrentLevel.getNumber()
+  -- elseif (LevelBonusLinear == enumLevelBonus.NEG_CURRENT_DEPTH) then levelBonus = -CurrentLevel.getDepth()
+  -- elseif (LevelBonusLinear == enumLevelBonus.CURRENT_DEPTH) then levelBonus = CurrentLevel.getDepth()
+  -- elseif (LevelBonusLinear == enumLevelBonus.CURRENT_FLOOR) then levelBonus = CurrentLevel.getNumber() end
+
+  -- levelBonus = levelBonus + LevelBonusFlat
+
+  -- choiceOpts.levelBonus = levelBonus
+
   -- Are we checking bans?
-  if _G["Slot" .. slot .. "Allowed"] == slotType.YES or ((not FirstGen) and _G["Slot" .. slot .. "Allowed"] == slotType.UNLOCKED_ONCE_THEN_YES) then
+  if _G["Slot" .. slot .. "Allowed"] == enumSlotType.YES or ((not FirstGen) and _G["Slot" .. slot .. "Allowed"] == enumSlotType.UNLOCKED_ONCE_THEN_YES) then
     choiceOpts.player = player
     choiceOpts.banMask = GenFlags[GeneratorType]
   end
@@ -675,5 +753,7 @@ Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
       RunState.getState().seenItems = seenItems
       p.descentDamageImmunity.active = false
     end
+
+    FirstGen = false
   end)
 end)
