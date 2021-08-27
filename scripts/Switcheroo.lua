@@ -742,7 +742,6 @@ Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
 
     for i, p in ipairs(Player.getPlayerEntities()) do
       p.descentDamageImmunity.active = true
-      local seenItems = Utilities.fastCopy(RunState.getState().seenItems)
 
       -- After this method, slots is {{"slot", index, containsItem|nil, banSell|nil}, {"slot", index, containsItem|nil, banSell|nil}}
       local slots = getSelectableSlots(p)
@@ -754,7 +753,6 @@ Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
       slots = selectAndClearSlots(i, p, slots)
       restockSlots(i, p, slots)
 
-      RunState.getState().seenItems = seenItems
       p.descentDamageImmunity.active = false
     end
 
