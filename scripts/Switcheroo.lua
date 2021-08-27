@@ -661,7 +661,6 @@ local function generateItem(rngSeed, slot, player)
     channel = rngSeed,
     slot = slot:lower(),
     chanceType = GenTypes[GeneratorType],
-    seenItems = {},
     default = Defaults[slot]
   }
 
@@ -676,6 +675,11 @@ local function generateItem(rngSeed, slot, player)
   -- levelBonus = levelBonus + LevelBonusFlat
 
   -- choiceOpts.levelBonus = levelBonus
+
+  -- Exclude seen items?
+  if slot == "Misc" then
+    choiceOpts.seenItems = {}
+  end
 
   -- Are we checking bans?
   if _G["Slot" .. slot .. "Allowed"] == enumSlotType.YES or ((not FirstGen) and _G["Slot" .. slot .. "Allowed"] == enumSlotType.UNLOCKED_ONCE_THEN_YES) then
