@@ -1,3 +1,4 @@
+local Components      = require "necro.game.data.Components"
 local Currency        = require "necro.game.item.Currency"
 local CurrentLevel    = require "necro.game.level.CurrentLevel"
 local Entities        = require "system.game.Entities"
@@ -9,12 +10,10 @@ local ItemGeneration  = require "necro.game.item.ItemGeneration"
 local Menu            = require "necro.menu.Menu"
 local Player          = require "necro.game.character.Player"
 local RNG             = require "necro.game.system.RNG"
-local RunState        = require "necro.game.system.RunState"
 local Settings        = require "necro.config.Settings"
 local SettingsStorage = require "necro.config.SettingsStorage"
 local Snapshot        = require "necro.game.system.Snapshot"
 local Try             = require "system.utils.Try"
-local Utilities       = require "system.utils.Utilities"
 
 local Slots    = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Item", "Spells", "Charms"}
 local SlotIDs  = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Action", "Spell", "Misc"}
@@ -68,18 +67,20 @@ local enumSlotType = Enum.sequence {
   UNLOCKED_ONCE_THEN_NO=5
 }
 
--- local enumLevelBonus = Enum.sequence {
---   NEG_CURRENT_FLOOR=-2,
---   NEG_CURRENT_DEPTH=-1,
---   NEUTRAL=0,
---   CURRENT_DEPTH=1,
---   CURRENT_FLOOR=2
--- }
+----------------
+-- COMPONENTS --
+----------------
+
+Components.register {
+  Switcheroo_noGive = {},
+  Switcheroo_noTake = {}
+}
 
 ----------------------
 -- SETTINGS SECTION --
 ----------------------
 do
+  -- Settings Functions --
   local function setFloors(data)
     for z, zdata in ipairs(data) do
       for l, v in ipairs(zdata) do
@@ -102,6 +103,11 @@ do
     return value == -1 and "No limit" or value
   end
 
+  local function checkComponents(item)
+    print(Entities.getEntityPrototype(item))
+  end
+
+  -- Settings nodes--
   GroupChance = Settings.group {
     name="Slot chances",
     id="chance",
@@ -436,40 +442,70 @@ do
     }
   end
 
-  -- LevelBonusGroup = Settings.group {
-  --   name="Level bonus",
-  --   id="bonus",
-  --   desc="Level bonus settings for item generation",
-  --   order=2.5
-  -- }
+  GroupComponents = Settings.group {
+    name="Components setting",
+    id="components",
+    desc="Settings that influence how item components affect generation",
+    order=3
+  }
 
-  -- do
-  --   LevelBonusLinear = Settings.shared.enum {
-  --     name="Linear scaling",
-  --     id="bonus.linear",
-  --     desc="Linear scaling of level bonus",
-  --     order=1,
-  --     enum=enumLevelBonus,
-  --     default=enumLevelBonus.NEUTRAL
-  --   }
+  do
+    ComponentsNotDestroyed = Settings.shared.string {
+      name="Don't destroy components",
+      id="components.destroyComponent",
+      desc="Space-separated list of components whose items shouldn't be taken.",
+      order=1,
+      default=""
+    }
 
-  --   LevelBonusFlat = Settings.shared.number {
-  --     name="Plus",
-  --     id="bonus.flat",
-  --     desc="Flat additive to level bonus",
-  --     order=2,
-  --     minimum=-25,
-  --     maximum=25,
-  --     default=0,
-  --     step=1
-  --   }
-  -- end
+    ComponentsNotGiven = Settings.shared.string {
+      name="Don't give components",
+      id="components.giveComponent",
+      desc="Space-separated list of components whose items shouldn't be given.",
+      order=2,
+      default="itemIncomingDamageIncrease"
+    }
+
+    ItemsNotDestroyed = Settings.entitySchema.string {
+      name="Don't destroy items",
+      id="components.destroyItem",
+      desc="Space-separated list of items shouldn't be taken.",
+      order=3,
+      default=""
+    }
+
+    ItemsNotGiven = Settings.entitySchema.string {
+      name="Don't give items",
+      id="components.giveItem",
+      desc="Space-separated list of items shouldn't be given.",
+      order=4,
+      default=""
+    }
+
+    ComponentChecker = Settings.shared.string {
+      name="Check components of",
+      id="components.check",
+      desc="Item for which components should be checked",
+      order=5,
+      default=""
+    }
+
+    ComponentCheck = Settings.shared.action {
+      name="Check",
+      id="components.checkexecute",
+      desc="Check the components",
+      order=6,
+      action=checkComponents
+    }
+  end
+
+  --[[]]
 
   GeneratorType = Settings.shared.enum {
     name="Generator type",
     id="type",
     desc="The type of generator to use for generated items.",
-    order=3,
+    order=4,
     enum=enumGenType,
     default=enumGenType.CONJURER
   }
@@ -478,7 +514,7 @@ do
     name="Sell items",
     id="sell",
     desc="Should destroyed items be sold and the profits given to the player?",
-    order=4,
+    order=5,
     minimum=0,
     maximum=2,
     step=0.1,
@@ -489,7 +525,7 @@ do
     name="Guaranteed transmutations",
     id="guarantees",
     desc="Should guaranteed transmutations be honoried, i.e. a Ring of Becoming always becomes a Ring of Wonder?",
-    order=5,
+    order=6,
     default=true
   }
 
@@ -497,14 +533,6 @@ do
     name="Ignore non-pool items",
     id="nonpool",
     desc="Should the mod ignore non-pooled items, such as a Potion or Lucky Charm? This doesn't apply to the base dagger or shovel.",
-    order=6,
-    default=true
-  }
-
-  ForbidInstakill = Settings.shared.bool {
-    name="Forbid instakill items",
-    id="instakill",
-    desc="Should items that can cause instant death be banned from the mod?",
     order=7,
     default=true
   }
@@ -656,25 +684,38 @@ local function selectAndClearSlots(playerNum, player, slots)
   return output
 end
 
+local function splitToList(str)
+  if not str then return {} end
+
+  local out = {}
+
+  for token in str:gmatch("[^%s]+") do
+    table.insert(out, token)
+  end
+
+  return out
+end
+
+local function splitToSet(str)
+  if not str then return {} end
+
+  local out = {}
+
+  for token in str:gmatch("[^%s]+") do
+    out[token] = true
+  end
+
+  return out
+end
+
 local function generateItem(rngSeed, slot, player)
   local choiceOpts = {
     channel = rngSeed,
     slot = slot:lower(),
     chanceType = GenTypes[GeneratorType],
-    default = Defaults[slot]
+    default = Defaults[slot],
+    excludedComponents = splitToList("Switcheroo_noGive " .. ComponentsNotGiven)
   }
-
-  -- -- Level bonus?
-  -- local levelBonus = 0
-
-  -- if (LevelBonusLinear == enumLevelBonus.NEG_CURRENT_FLOOR) then levelBonus = -CurrentLevel.getNumber()
-  -- elseif (LevelBonusLinear == enumLevelBonus.NEG_CURRENT_DEPTH) then levelBonus = -CurrentLevel.getDepth()
-  -- elseif (LevelBonusLinear == enumLevelBonus.CURRENT_DEPTH) then levelBonus = CurrentLevel.getDepth()
-  -- elseif (LevelBonusLinear == enumLevelBonus.CURRENT_FLOOR) then levelBonus = CurrentLevel.getNumber() end
-
-  -- levelBonus = levelBonus + LevelBonusFlat
-
-  -- choiceOpts.levelBonus = levelBonus
 
   -- Exclude seen items?
   if slot == "Misc" then
@@ -685,11 +726,6 @@ local function generateItem(rngSeed, slot, player)
   if _G["Slot" .. slot .. "Allowed"] == enumSlotType.YES or ((not FirstGen) and _G["Slot" .. slot .. "Allowed"] == enumSlotType.UNLOCKED_ONCE_THEN_YES) then
     choiceOpts.player = player
     choiceOpts.banMask = GenFlags[GeneratorType]
-  end
-
-  -- Are we excluding instakill items?
-  if ForbidInstakill then
-    choiceOpts.excludedComponents = {"itemIncomingDamageIncrease"}
   end
 
   local item = ItemGeneration.choice(choiceOpts)
@@ -731,6 +767,8 @@ end
 --------------------
 
 Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
+  print(ComponentsNotGiven)
+  
   Try.catch(function()
     -- Make sure the mod should activate on this level
     local d = CurrentLevel.getDepth()
@@ -758,4 +796,12 @@ Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
 
     FirstGen = false
   end)
+end)
+
+Event.entitySchemaLoadNamedEntity.add("addComponent", {order="overrides"}, function(ev)
+  if splitToSet(ItemsNotGiven)[ev.entity.name] then
+    ev.entity.Switcheroo_noGive = {}
+  else
+    ev.entity.Switcheroo_noGive = nil
+  end
 end)
