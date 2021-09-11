@@ -39,7 +39,6 @@ end
 ---------------
 
 FirstGen = Snapshot.runVariable(true)
-StartingGear = Snapshot.runVariable({})
 
 -----------------
 -- SCRIPT VARS --
@@ -486,7 +485,7 @@ do
       id="components.destroyItem",
       desc="Space-separated list of items shouldn't be taken.",
       order=3,
-      default=""
+      default="MiscPotion CharmLuck RingWonder HeadCrownOfGreed"
     }
 
     ItemsNotGiven = Settings.entitySchema.string {
@@ -541,14 +540,6 @@ do
     id="guarantees",
     desc="Should guaranteed transmutations be honoried, i.e. a Ring of Becoming always becomes a Ring of Wonder?",
     order=6,
-    default=true
-  }
-
-  IgnoreNonPool = Settings.shared.bool {
-    name="Ignore non-pool items",
-    id="nonpool",
-    desc="Should the mod ignore non-pooled items, such as a Potion or Lucky Charm? This doesn't apply to the base dagger or shovel.",
-    order=7,
     default=true
   }
 end
@@ -624,9 +615,6 @@ end
 local function skipSubslot(item)
   -- If the slot is full, make sure we can pick full slots
   if FilledSlotChance == 0 then return true end
-
-  -- Also make sure it's not an item that's not in the pool (or that it's a starting item)
-  if IgnoreNonPool and item.Switcheroo_noChance and not StartingGear[item.id] then return true end
 
   -- Or an item banned from removal
   if itemHasBannedTag(item) then return true end
@@ -801,21 +789,10 @@ end
 --------------------
 
 Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
-  -- If we're loading the *first* level, save the IDs of all the current gear
-  local d = CurrentLevel.getDepth()
-  local l = CurrentLevel.getFloor()
-
-  if d == 1 and l == 1 then
-    for i, plr in ipairs(Player.getPlayerEntities()) do
-      for i2, slot in ipairs(SlotIDs) do
-        for i3, itm in ipairs(Inventory.getItemsInSlot(plr, slot:lower())) do
-          StartingGear[itm.id] = true
-        end
-      end
-    end
-  end
-
   Try.catch(function()
+    local d = CurrentLevel.getDepth()
+    local l = CurrentLevel.getFloor()
+
     -- Make sure the mod should activate on this level
     if not _G["Level" .. d .. l] then return end
 
@@ -860,11 +837,5 @@ Event.entitySchemaLoadEntity.add("addComponent", {order="overrides"}, function(e
     ev.entity.Switcheroo_noTake = {}
   else
     ev.entity.Switcheroo_noTake = nil
-  end
-
-  if not ev.entity.itemChances then
-    ev.entity.Switcheroo_noChance = {}
-  else
-    ev.entity.Switcheroo_noChance = nil
   end
 end)
