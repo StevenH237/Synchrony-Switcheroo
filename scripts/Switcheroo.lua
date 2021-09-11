@@ -41,6 +41,13 @@ end
 FirstGen = Snapshot.runVariable(true)
 StartingGear = Snapshot.runVariable({})
 
+-----------------
+-- SCRIPT VARS --
+-----------------
+
+local itemsNotGivenTable = {}
+local itemsNotTakenTable = {}
+
 -----------
 -- ENUMS --
 -----------
@@ -594,9 +601,36 @@ local function splitToSet(str)
 end
 
 local function itemHasBannedTag(item)
-  for i,v in ipairs(splitToList("switcheroo_noTake " .. ComponentsNotDestroyed)) do
+  for i,v in ipairs(splitToList("Switcheroo_noTake " .. ComponentsNotDestroyed)) do
     if item[v] then return true end
   end
+  return false
+end
+
+local function skipSlot(player, v)
+  local slot = v:lower()
+
+  -- Check that slot is allowed by mod settings
+  local allowed = _G["Slot" .. v .. "Allowed"]
+  if allowed == enumSlotType.NO then return true end
+  if (not FirstGen) and (allowed == enumSlotType.ONCE or allowed == enumSlotType.UNLOCKED_ONCE_THEN_NO) then return true end
+
+  -- Check that the slot is not cursed
+  if Inventory.isCursedSlot(player, slot) then return true end
+
+  return false
+end
+
+local function skipSubslot(item)
+  -- If the slot is full, make sure we can pick full slots
+  if FilledSlotChance == 0 then return true end
+
+  -- Also make sure it's not an item that's not in the pool (or that it's a starting item)
+  if IgnoreNonPool and item.Switcheroo_noChance and not StartingGear[item.id] then return true end
+
+  -- Or an item banned from removal
+  if itemHasBannedTag(item) then return true end
+
   return false
 end
 
@@ -606,70 +640,52 @@ local function getSelectableSlots(player)
   for i, v in ipairs(SlotIDs) do
     local slot = v:lower()
 
-    -- Check that slot is allowed by mod settings
-    local allowed = _G["Slot" .. v .. "Allowed"]
-    if allowed == enumSlotType.NO then goto gssContinue end
-    if (not FirstGen) and (allowed == enumSlotType.ONCE or allowed == enumSlotType.UNLOCKED_ONCE_THEN_NO) then goto gssContinue end
-
-    -- Check that the slot is not cursed
-    if Inventory.isCursedSlot(player, slot) then goto gssContinue end
-
-    -- Now divide the slot into individual pieces, if necessary
-    local topIndex = 1
-    if slot == "spell" then topIndex = 2 end
-
-    -- Get the current item(s) in the slot
-    local items = Inventory.getItemsInSlot(player, slot)
-    if slot == "misc" then
-      -- For charms, we need to pick the median of the following:
-      -- • The number of charms the player already holds
-      -- • That plus MaxNewCharms
-      -- • The value of MaxCharmsForNew
-      topIndex = median(#items, #items + MaxNewCharms, MaxCharmsForNew)
-    elseif #items > 1 then topIndex = #items end
-
-    -- Iterate over the subslots
-    for i2 = 1, topIndex do
-      local item = items[i2]
-
-      if not item then
-        -- If the slot is empty, make sure we can pick empty slots
-        -- A 0% chance overrides minimums
-        if EmptySlotChance > 0 then
-          table.insert(slots, {v, i2})
-        end
-      else
-        -- If the slot is full, make sure we can pick full slots
-        if FilledSlotChance == 0 then goto gssSlotContinue end
-
-        -- Also make sure it's not an item that's not in the pool (or that it's a starting item)
-        if IgnoreNonPool and item.Switcheroo_noChance and not StartingGear[item.id] then goto gssSlotContinue end
-
-        -- Or an item banned from removal
-        if itemHasBannedTag(item) then goto gssSlotContinue end
-
-        local value = {v, i2, item}
-
-        -- Or an item forbidden from dropping, if we're respecting bans
-        if allowed == enumSlotType.YES or ((not FirstGen) and allowed == enumSlotType.UNLOCKED_ONCE_THEN_YES) then
-          local bans = ItemBan.getBanFlags(player, item)
-
-          if checkFlags(bans, ItemBan.Flag.PICKUP + ItemBan.Flag.LOSS_DROP + ItemBan.Flag.CONVERT_SHRINE + ItemBan.Flag.CONVERT_SPELL + ItemBan.Flag.CONVERT_TRANSACTION, false) then
-            goto gssSlotContinue
+    if not skipSlot(player, v) then
+      local allowed = _G["Slot" .. v .. "Allowed"]
+      -- Now divide the slot into individual pieces, if necessary
+      local topIndex = 1
+      if slot == "spell" then topIndex = 2 end
+      
+      -- Get the current item(s) in the slot
+      local items = Inventory.getItemsInSlot(player, slot)
+      if slot == "misc" then
+        -- For charms, we need to pick the median of the following:
+        -- • The number of charms the player already holds
+        -- • That plus MaxNewCharms
+        -- • The value of MaxCharmsForNew
+        topIndex = median(#items, #items + MaxNewCharms, MaxCharmsForNew)
+      elseif #items > 1 then topIndex = #items end
+      
+      -- Iterate over the subslots
+      for i2 = 1, topIndex do
+        local item = items[i2]
+        
+        if not item then
+          -- If the slot is empty, make sure we can pick empty slots
+          -- A 0% chance overrides minimums
+          if EmptySlotChance > 0 then
+            table.insert(slots, {v, i2})
           end
-
-          if checkFlags(bans, ItemBan.Flag.LOSS_SELL) then
-            value[4] = true
+        else
+          if not skipSubslot(item) then
+            local value = {v, i2, item}
+            
+            -- Or an item forbidden from dropping, if we're respecting bans
+            if allowed == enumSlotType.YES or ((not FirstGen) and allowed == enumSlotType.UNLOCKED_ONCE_THEN_YES) then
+              local bans = ItemBan.getBanFlags(player, item)
+              
+              if not checkFlags(bans, ItemBan.Flag.PICKUP + ItemBan.Flag.LOSS_DROP + ItemBan.Flag.CONVERT_SHRINE + ItemBan.Flag.CONVERT_SPELL + ItemBan.Flag.CONVERT_TRANSACTION, false) then              
+                if checkFlags(bans, ItemBan.Flag.LOSS_SELL) then
+                  value[4] = true
+                end
+              end
+            end
+            
+            table.insert(slots, value)
           end
         end
-
-        table.insert(slots, value)
       end
-
-      ::gssSlotContinue::
     end
-
-    ::gssContinue::
   end
 
   return slots
@@ -826,14 +842,21 @@ Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
   end)
 end)
 
-Event.entitySchemaLoadNamedEntity.add("addComponent", {order="overrides"}, function(ev)
-  if splitToSet(ItemsNotGiven)[ev.entity.name] then
+Event.entitySchemaGenerate.add("switcherooFunctions", {order="components", sequence=-1}, function ()
+  itemsNotGivenTable = splitToSet(ItemsNotGiven)
+  itemsNotTakenTable = splitToSet(ItemsNotDestroyed)
+end)
+
+Event.entitySchemaLoadEntity.add("addComponent", {order="overrides"}, function(ev)
+  if not ev.entity.item then return end
+
+  if itemsNotGivenTable[ev.entity.name] then
     ev.entity.Switcheroo_noGive = {}
   else
     ev.entity.Switcheroo_noGive = nil
   end
 
-  if splitToSet(ItemsNotDestroyed)[ev.entity.name] then
+  if itemsNotTakenTable[ev.entity.name] then
     ev.entity.Switcheroo_noTake = {}
   else
     ev.entity.Switcheroo_noTake = nil
