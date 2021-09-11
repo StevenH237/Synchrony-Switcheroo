@@ -39,6 +39,7 @@ end
 ---------------
 
 FirstGen = Snapshot.runVariable(true)
+StartingGear = Snapshot.runVariable({})
 
 -----------
 -- ENUMS --
@@ -641,8 +642,8 @@ local function getSelectableSlots(player)
         -- If the slot is full, make sure we can pick full slots
         if FilledSlotChance == 0 then goto gssSlotContinue end
 
-        -- Also make sure it's not an ignored item
-        if IgnoreNonPool and item.Switcheroo_noChance then goto gssSlotContinue end
+        -- Also make sure it's not an item that's not in the pool (or that it's a starting item)
+        if IgnoreNonPool and item.Switcheroo_noChance and not StartingGear[item.id] then goto gssSlotContinue end
 
         -- Or an item banned from removal
         if itemHasBannedTag(item) then goto gssSlotContinue end
@@ -784,12 +785,22 @@ end
 --------------------
 
 Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
-  print(ComponentsNotGiven)
+  -- If we're loading the *first* level, save the IDs of all the current gear
+  local d = CurrentLevel.getDepth()
+  local l = CurrentLevel.getFloor()
+
+  if d == 1 and l == 1 then
+    for i, plr in ipairs(Player.getPlayerEntities()) do
+      for i2, slot in ipairs(SlotIDs) do
+        for i3, itm in ipairs(Inventory.getItemsInSlot(plr, slot:lower())) do
+          StartingGear[itm.id] = true
+        end
+      end
+    end
+  end
 
   Try.catch(function()
     -- Make sure the mod should activate on this level
-    local d = CurrentLevel.getDepth()
-    local l = CurrentLevel.getFloor()
     if not _G["Level" .. d .. l] then return end
 
     -- Shortcut if maximum is zero
