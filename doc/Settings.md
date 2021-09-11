@@ -46,11 +46,28 @@ This page lets you control which floors the mod may activate on. Yes or no influ
 
 Please note that floors are listed by Depth-Level, not Zone-Level. In particular, this means that 1-1 refers to the electric zone when anyone is playing as Aria.
 
+# Components settings
+This page affects components or items that shouldn't be taken from, or given to, the player(s).
+
+Note that item IDs are not the same as in vanilla NecroDancer. IDs are instead written in PascalCase with no underscores. For example, the basic dagger, `weapon_dagger` in ND, is `WeaponDagger` in Synchrony.
+
+Note that if you remove `itemBanInnateSpell` from the "Don't take components" list, Nocturna will be able to lose the Transform spell. This can lead to a softlock if you're playing as her.
+
+* **Don't take components**: A space-separated list of item components — any items with components in this list will not be taken from any player by the mod.
+* **Don't give components**: A space-separated list of item components — any items with components in this list will not be given to any player by the mod.
+* **Don't take items**: A space-separated list of items — any items in this list will not be taken from any player by the mod.
+* **Don't give items**: A space-separated list of items — any items in this list will not be given to any player by the mod.
+* **Check components of**: Enter an item ID here, then press enter on **Check** below, then press F1 to see the components of an item.
+
 # Other settings
 These settings are just on the first page of settings.
 
 * **Generator type**: This selects the algorithm which is used to select items for random builds.
 * **Sell items**: Items that are removed from the player are sold for this percent of the Pawnbroker price.
 * **Guaranteed transmutations**: Items that have a fixed transmute result are guaranteed to be transmuted according to that result, *if* they are replaced and not deleted. For vanilla items, this affects only the Ring of Becoming turning into a Ring of Wonder.
-* **Ignore non-pool items**: Items that are not in random pools cannot be removed or replaced by the mod if this setting is on.
-* **Forbid instakill items**: Items that cause the player to die in a single hit cannot be given by the mod if this setting is on.
+
+# Removed settings
+Looking for settings that have been removed? Use this guide to figure out how to get the same effect!
+
+* **Forbid instakill items**: This setting removed items from the mod that increased incoming damage. Ban the component `itemIncomingDamageIncrease` for the same effect. This component is in the default grant banlist.
+* **Ignore non-pool items**: This setting prevented specific items from being taken because they're not in the random item pool. Ban removal of the items `MiscPotion CharmLuck RingWonder` for the same effect. These items are in the default removal banlist.
