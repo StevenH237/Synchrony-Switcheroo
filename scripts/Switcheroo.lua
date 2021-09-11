@@ -25,8 +25,7 @@ local GenFlags = {[0]=4227073, 4227073, 4227073, 4227073, 4227073, 4259841, 4227
 -- 4259841: PICKUP + PICKUP_DEATH + GENERATE_CRATE
 -- 6553601: PICKUP + PICKUP_DEATH + GENERATE_SHRINE_POOL + GENERATE_TRANSACTION
 
-local nonPool     = {RingWonder=true, CharmLuck=true, MiscPotion=true}
-local neverDelete = {SpellTransform=true}
+local nonPool = {RingWonder=true, CharmLuck=true, MiscPotion=true}
 
 -- NOTE: This mod adds the player number to this channel so that rolls can remain the same per player.
 -- For example, player 1 uses channel 23701, player 2 uses 23702, etc.
@@ -73,7 +72,8 @@ local enumSlotType = Enum.sequence {
 
 Components.register {
   Switcheroo_noGive = {},
-  Switcheroo_noTake = {}
+  Switcheroo_noTake = {},
+  Switcheroo_noChance = {}
 }
 
 ----------------------
@@ -123,7 +123,8 @@ do
       default=1,
       minimum=0,
       maximum=1,
-      step=0.25,
+      step=0.1,
+      editAsString=true,
       order=0
     }
 
@@ -134,7 +135,8 @@ do
       default=1,
       minimum=0,
       maximum=1,
-      step=0.25,
+      step=0.1,
+      editAsString=true,
       order=1
     }
 
@@ -145,7 +147,8 @@ do
       default=1,
       minimum=-0.05,
       maximum=1,
-      step=0.05,
+      step=0.1,
+      editAsString=true,
       order=2
     }
 
@@ -157,6 +160,7 @@ do
       minimum=0,
       maximum=10000,
       step=1,
+      editAsString=true,
       order=3
     }
 
@@ -168,6 +172,7 @@ do
       minimum=-1,
       maximum=10000,
       step=1,
+      editAsString=true,
       format=noLimit,
       order=4
     }
@@ -276,6 +281,7 @@ do
       default=1,
       minimum=0,
       maximum=100,
+      editAsString=true,
       order=1
     }
 
@@ -286,6 +292,7 @@ do
       default=5,
       minimum=-1,
       maximum=100,
+      editAsString=true,
       format=noLimit,
       order=2
     }
@@ -455,7 +462,7 @@ do
       id="components.destroyComponent",
       desc="Space-separated list of components whose items shouldn't be taken.",
       order=1,
-      default=""
+      default="itemBanInnateSpell"
     }
 
     ComponentsNotGiven = Settings.shared.string {
@@ -463,7 +470,7 @@ do
       id="components.giveComponent",
       desc="Space-separated list of components whose items shouldn't be given.",
       order=2,
-      default="itemIncomingDamageIncrease"
+      default="itemIncomingDamageIncrease itemBanInnateSpell"
     }
 
     ItemsNotDestroyed = Settings.entitySchema.string {
@@ -561,6 +568,37 @@ end
 -- EVENT FUNCTIONS --
 ---------------------
 
+local function splitToList(str)
+  if not str then return {} end
+
+  local out = {}
+
+  for token in str:gmatch("[^%s]+") do
+    table.insert(out, token)
+  end
+
+  return out
+end
+
+local function splitToSet(str)
+  if not str then return {} end
+
+  local out = {}
+
+  for token in str:gmatch("[^%s]+") do
+    out[token] = true
+  end
+
+  return out
+end
+
+local function itemHasBannedTag(item)
+  for i,v in ipairs(splitToList("switcheroo_noTake " .. ComponentsNotDestroyed)) do
+    if item[v] then return true end
+  end
+  return false
+end
+
 local function getSelectableSlots(player)
   local slots = {}
 
@@ -604,7 +642,10 @@ local function getSelectableSlots(player)
         if FilledSlotChance == 0 then goto gssSlotContinue end
 
         -- Also make sure it's not an ignored item
-        if neverDelete[item.name] or (nonPool[item.name] and IgnoreNonPool) then goto gssSlotContinue end
+        if IgnoreNonPool and item.Switcheroo_noChance then goto gssSlotContinue end
+
+        -- Or an item banned from removal
+        if itemHasBannedTag(item) then goto gssSlotContinue end
 
         local value = {v, i2, item}
 
@@ -684,30 +725,6 @@ local function selectAndClearSlots(playerNum, player, slots)
   return output
 end
 
-local function splitToList(str)
-  if not str then return {} end
-
-  local out = {}
-
-  for token in str:gmatch("[^%s]+") do
-    table.insert(out, token)
-  end
-
-  return out
-end
-
-local function splitToSet(str)
-  if not str then return {} end
-
-  local out = {}
-
-  for token in str:gmatch("[^%s]+") do
-    out[token] = true
-  end
-
-  return out
-end
-
 local function generateItem(rngSeed, slot, player)
   local choiceOpts = {
     channel = rngSeed,
@@ -768,7 +785,7 @@ end
 
 Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
   print(ComponentsNotGiven)
-  
+
   Try.catch(function()
     -- Make sure the mod should activate on this level
     local d = CurrentLevel.getDepth()
@@ -803,5 +820,17 @@ Event.entitySchemaLoadNamedEntity.add("addComponent", {order="overrides"}, funct
     ev.entity.Switcheroo_noGive = {}
   else
     ev.entity.Switcheroo_noGive = nil
+  end
+
+  if splitToSet(ItemsNotDestroyed)[ev.entity.name] then
+    ev.entity.Switcheroo_noTake = {}
+  else
+    ev.entity.Switcheroo_noTake = nil
+  end
+
+  if not ev.entity.itemChances then
+    ev.entity.Switcheroo_noChance = {}
+  else
+    ev.entity.Switcheroo_noChance = nil
   end
 end)
