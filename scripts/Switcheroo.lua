@@ -25,8 +25,6 @@ local GenFlags = {[0]=4227073, 4227073, 4227073, 4227073, 4227073, 4259841, 4227
 -- 4259841: PICKUP + PICKUP_DEATH + GENERATE_CRATE
 -- 6553601: PICKUP + PICKUP_DEATH + GENERATE_SHRINE_POOL + GENERATE_TRANSACTION
 
-local nonPool = {RingWonder=true, CharmLuck=true, MiscPotion=true}
-
 -- NOTE: This mod adds the player number to this channel so that rolls can remain the same per player.
 -- For example, player 1 uses channel 23701, player 2 uses 23702, etc.
 local rngChannel = 23700
@@ -457,16 +455,16 @@ do
   end
 
   GroupComponents = Settings.group {
-    name="Components setting",
+    name="Components settings",
     id="components",
     desc="Settings that influence how item components affect generation",
     order=3
   }
 
   do
-    ComponentsNotDestroyed = Settings.shared.string {
-      name="Don't destroy components",
-      id="components.destroyComponent",
+    ComponentsNotTaken = Settings.shared.string {
+      name="Don't take components",
+      id="components.takeComponent",
       desc="Space-separated list of components whose items shouldn't be taken.",
       order=1,
       default="itemBanInnateSpell"
@@ -480,9 +478,9 @@ do
       default="itemIncomingDamageIncrease itemBanInnateSpell"
     }
 
-    ItemsNotDestroyed = Settings.entitySchema.string {
-      name="Don't destroy items",
-      id="components.destroyItem",
+    ItemsNotTaken = Settings.entitySchema.string {
+      name="Don't take items",
+      id="components.takeItem",
       desc="Space-separated list of items shouldn't be taken.",
       order=3,
       default="MiscPotion CharmLuck RingWonder HeadCrownOfGreed"
@@ -592,7 +590,7 @@ local function splitToSet(str)
 end
 
 local function itemHasBannedTag(item)
-  for i,v in ipairs(splitToList("Switcheroo_noTake " .. ComponentsNotDestroyed)) do
+  for i,v in ipairs(splitToList("Switcheroo_noTake " .. ComponentsNotTaken)) do
     if item[v] then return true end
   end
   return false
@@ -821,7 +819,7 @@ end)
 
 Event.entitySchemaGenerate.add("switcherooFunctions", {order="components", sequence=-1}, function ()
   itemsNotGivenTable = splitToSet(ItemsNotGiven)
-  itemsNotTakenTable = splitToSet(ItemsNotDestroyed)
+  itemsNotTakenTable = splitToSet(ItemsNotTaken)
 end)
 
 Event.entitySchemaLoadEntity.add("addComponent", {order="overrides"}, function(ev)
