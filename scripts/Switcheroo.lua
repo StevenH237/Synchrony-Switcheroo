@@ -787,10 +787,12 @@ end
 --------------------
 
 Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
-  Try.catch(function()
-    local d = CurrentLevel.getDepth()
-    local l = CurrentLevel.getFloor()
+  local d = CurrentLevel.getDepth()
+  local l = CurrentLevel.getFloor()
 
+  if CurrentLevel.isLobby() then return end
+
+  Try.catch(function()
     -- Make sure the mod should activate on this level
     if not _G["Level" .. d .. l] then return end
 
