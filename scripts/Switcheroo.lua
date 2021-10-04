@@ -20,10 +20,23 @@ local SlotIDs  = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "
 local Defaults = {Shovel="ShovelBasic", Weapon="WeaponDagger"}
 
 local GenTypes = {[0]=nil, "chest", "lockedChest", "shop", "lockedShop", "urn", "redChest", "purpleChest", "blackChest", "secret"}
-local GenFlags = {[0]=4227073, 4227073, 4227073, 4227073, 4227073, 4259841, 4227073, 4227073, 4227073, 6553601}
--- 4227073: PICKUP + PICKUP_DEATH + GENERATE_ITEM_POOL
--- 4259841: PICKUP + PICKUP_DEATH + GENERATE_CRATE
--- 6553601: PICKUP + PICKUP_DEATH + GENERATE_SHRINE_POOL + GENERATE_TRANSACTION
+local GenCombo = {
+  ItemPool = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_ITEM_POOL,
+  CratePool = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_CRATE,
+  ShrinePool = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_SHRINE_POOL + ItemBan.Flag.GENERATE_TRANSACTION
+}
+local GenFlags = {
+  [0]=GenCombo.ItemPool,
+  GenCombo.ItemPool,
+  GenCombo.ItemPool,
+  GenCombo.ItemPool,
+  GenCombo.ItemPool,
+  GenCombo.CratePool,
+  GenCombo.ItemPool,
+  GenCombo.ItemPool,
+  GenCombo.ItemPool,
+  GenCombo.ShrinePool
+}
 
 -- NOTE: This mod adds the player number to this channel so that rolls can remain the same per player.
 -- For example, player 1 uses channel 23701, player 2 uses 23702, etc.
@@ -540,6 +553,14 @@ do
     order=6,
     default=true
   }
+
+  AllowDeath = Settings.shared.bool {
+    name="Allow deadly items",
+    id="deadly",
+    desc="Should items that are *only* PICKUP_DEATH banned be allowed? They won't kill from the mod.",
+    order=7,
+    default=false
+  }
 end
 
 ---------------
@@ -743,9 +764,15 @@ local function generateItem(rngSeed, slot, player)
   end
 
   -- Are we checking bans?
+  choiceOpts.banMask = 0
+  choiceOpts.player = player
+
   if _G["Slot" .. slot .. "Allowed"] == enumSlotType.YES or ((not FirstGen) and _G["Slot" .. slot .. "Allowed"] == enumSlotType.UNLOCKED_ONCE_THEN_YES) then
-    choiceOpts.player = player
     choiceOpts.banMask = GenFlags[GeneratorType]
+  end
+
+  if not AllowDeath then
+    choiceOpts.banMask = choiceOpts.banMask + ItemBan.Flag.PICKUP_DEATH
   end
 
   local item = ItemGeneration.choice(choiceOpts)
