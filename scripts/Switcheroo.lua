@@ -15,6 +15,8 @@ local SettingsStorage = require "necro.config.SettingsStorage"
 local Snapshot        = require "necro.game.system.Snapshot"
 local Try             = require "system.utils.Try"
 
+local PowerSettings   = require "PowerSettings.PowerSettings"
+
 local Slots    = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Item", "Spells", "Charms"}
 local SlotIDs  = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Action", "Spell", "Misc"}
 local Defaults = {Shovel="ShovelBasic", Weapon="WeaponDagger"}
@@ -126,14 +128,14 @@ do
   end
 
   -- Settings nodes --
-  GroupPresets = Settings.group {
+  GroupPresets = PowerSettings.group {
     name="Presets",
     id="preset",
     desc="Featured play modes chosen by the mod's author",
     order=-1
   }
   
-  GroupChance = Settings.group {
+  GroupChance = PowerSettings.group {
     name="Slot chances",
     id="chance",
     desc="Chances and min/max of slots being picked and filled",
@@ -141,7 +143,7 @@ do
   }
 
   do
-    EmptySlotChance = Settings.shared.percent {
+    EmptySlotChance = PowerSettings.shared.percent {
       name="Empty slot pick chance",
       id="chance.empty",
       desc="Chance that an empty slot is picked to receive an item.",
@@ -153,7 +155,7 @@ do
       order=0
     }
 
-    FilledSlotChance = Settings.shared.percent {
+    FilledSlotChance = PowerSettings.shared.percent {
       name="Filled slot pick chance",
       id="chance.filled",
       desc="Chance that an occupied slot is cleared and picked to receive an item.",
@@ -165,7 +167,7 @@ do
       order=1
     }
 
-    SlotFillChance = Settings.shared.percent {
+    SlotFillChance = PowerSettings.shared.percent {
       name="Slot fill chance",
       id="chance.new",
       desc="Chance that a selected slot receives an item; if it fails, the slot becomes blank.",
@@ -177,7 +179,7 @@ do
       order=2
     }
 
-    SlotMinimum = Settings.shared.number {
+    SlotMinimum = PowerSettings.shared.number {
       name="Minimum slots",
       id="chance.minimum",
       desc="Minimum number of slots to fill.",
@@ -189,7 +191,7 @@ do
       order=3
     }
 
-    SlotMaximum = Settings.shared.number {
+    SlotMaximum = PowerSettings.shared.number {
       name="Maximum slots",
       id="chance.maximum",
       desc="Maximum number of slots to fill, or -1 for no limit",
@@ -203,14 +205,14 @@ do
     }
   end
 
-  GroupSlots = Settings.group {
+  GroupSlots = PowerSettings.group {
     name="Allowed slots",
     id="slots",
     desc="Which slots can be selected and overridden by the mod",
     order=1
   }
 
-  GroupSlotSet = Settings.group {
+  GroupSlotSet = PowerSettings.group {
     name="Set all...",
     id="slots.all",
     desc="Select a value and set all slots to that value",
@@ -218,7 +220,7 @@ do
   }
 
   do
-    PresetSlotsNo = Settings.shared.action {
+    PresetSlotsNo = PowerSettings.shared.action {
       name="No",
       id="slots.all.no",
       desc="Disables every slot for Switcheroo",
@@ -228,7 +230,7 @@ do
       end
     }
 
-    PresetSlotsYes = Settings.shared.action {
+    PresetSlotsYes = PowerSettings.shared.action {
       name="Yes",
       id="slots.all.yes",
       desc="Enables every slot for Switcheroo",
@@ -238,7 +240,7 @@ do
       end
     }
 
-    PresetSlotsNo = Settings.shared.action {
+    PresetSlotsNo = PowerSettings.shared.action {
       name="Unlocked",
       id="slots.all.unlock",
       desc="Unlocks every slot for Switcheroo",
@@ -248,7 +250,7 @@ do
       end
     }
 
-    PresetSlotsOnce = Settings.shared.action {
+    PresetSlotsOnce = PowerSettings.shared.action {
       name="Once",
       id="slots.all.once",
       desc="Enables every slot for Switcheroo once",
@@ -258,7 +260,7 @@ do
       end
     }
 
-    PresetSlotsUnlockedYes = Settings.shared.action {
+    PresetSlotsUnlockedYes = PowerSettings.shared.action {
       name="Unlocked once, then Yes",
       id="slots.all.unlock_yes",
       desc="Unlocks every slot for Switcheroo once, then leaves them enabled",
@@ -268,7 +270,7 @@ do
       end
     }
 
-    PresetSlotsUnlockedNo = Settings.shared.action {
+    PresetSlotsUnlockedNo = PowerSettings.shared.action {
       name="Unlocked once, then No",
       id="slots.all.unlock_no",
       desc="Unlocks every slot for Switcheroo once, then leaves them disabled",
@@ -281,7 +283,7 @@ do
 
   -- This loop generates a toggle for every slot.
   for i, v in ipairs(SlotIDs) do
-    _G["Slot" .. v .. "Allowed"] = Settings.shared.enum {
+    _G["Slot" .. v .. "Allowed"] = PowerSettings.shared.enum {
       name=Slots[i],
       id="slots." .. v:lower(),
       desc="Can the mod override the " .. Slots[i]:lower() .. "  slot",
@@ -291,7 +293,7 @@ do
     }
   end
 
-  GroupCharms = Settings.group {
+  GroupCharms = PowerSettings.group {
     name="Charms settings",
     id="charms",
     desc="Settings relating to Misc (Charms) slots",
@@ -299,7 +301,7 @@ do
   }
 
   do
-    MaxNewCharms = Settings.shared.number {
+    MaxNewCharms = PowerSettings.shared.number {
       name="Max new charms",
       id="charms.new",
       desc="How many new charms can be added per floor?",
@@ -310,7 +312,7 @@ do
       order=1
     }
 
-    MaxCharmsForNew = Settings.shared.number {
+    MaxCharmsForNew = PowerSettings.shared.number {
       name="Max charms from new",
       id="charms.max",
       desc="How many charms are allowed without collecting more outside the mod?",
@@ -323,7 +325,7 @@ do
     }
   end
 
-  GroupFloors = Settings.group {
+  GroupFloors = PowerSettings.group {
     name="Allowed floors",
     id="floors",
     desc="On which floors should the mod activate?",
@@ -331,7 +333,7 @@ do
   }
 
   do
-    GroupFloorPresets = Settings.group {
+    GroupFloorPresets = PowerSettings.group {
       name="Select preset",
       id="floors.preset",
       desc="Select a preset for allowed floors",
@@ -339,7 +341,7 @@ do
     }
 
     do
-      PresetEveryFloor = Settings.shared.action {
+      PresetEveryFloor = PowerSettings.shared.action {
         name="Every floor",
         id="floors.preset.every",
         desc="Switcheroo activates every floor",
@@ -355,7 +357,7 @@ do
         end
       }
 
-      PresetEveryOddFloor = Settings.shared.action {
+      PresetEveryOddFloor = PowerSettings.shared.action {
         name="Every odd floor",
         id="floors.preset.everyodd",
         desc="Switcheroo activates every odd-numbered floor",
@@ -371,7 +373,7 @@ do
         end
       }
 
-      PresetEveryEvenFloor = Settings.shared.action {
+      PresetEveryEvenFloor = PowerSettings.shared.action {
         name="Every even floor",
         id="floors.preset.everyeven",
         desc="Switcheroo activates every even-numbered floor",
@@ -387,7 +389,7 @@ do
         end
       }
 
-      PresetEveryFirstAndBossFloors = Settings.shared.action {
+      PresetEveryFirstAndBossFloors = PowerSettings.shared.action {
         name="First and boss floors",
         id="floors.preset.firstandboss",
         desc="Switcheroo activates on depths 1 and 4 of each zone",
@@ -403,7 +405,7 @@ do
         end
       }
 
-      PresetEveryFirstFloor = Settings.shared.action {
+      PresetEveryFirstFloor = PowerSettings.shared.action {
         name="First floor of zone",
         id="floors.preset.firstofzone",
         desc="Switcheroo activates on depth 1 of each zone",
@@ -419,7 +421,7 @@ do
         end
       }
 
-      PresetEveryBossFloor = Settings.shared.action {
+      PresetEveryBossFloor = PowerSettings.shared.action {
         name="Boss floor of zone",
         id="floors.preset.bossofzone",
         desc="Switcheroo activates on depth 4 of each zone",
@@ -435,7 +437,7 @@ do
         end
       }
 
-      PresetOnceARun = Settings.shared.action {
+      PresetOnceARun = PowerSettings.shared.action {
         name="At start of run",
         id="floors.preset.firstfloor",
         desc="Switcheroo activates only on 1-1",
@@ -455,7 +457,7 @@ do
     -- This loop generates a toggle for every level, except 5-5 which is added separately.
     for z = 1, 5 do
       for l = 1, 4 do
-        _G["Level" .. z .. l] = Settings.shared.bool {
+        _G["Level" .. z .. l] = PowerSettings.shared.bool {
           name="Level " .. z .. "-" .. l,
           id="floors.l" .. z .. l,
           desc="Allow activation on level " .. z .. "-" .. l .. "?",
@@ -465,7 +467,7 @@ do
       end
     end
     
-    Level55 = Settings.shared.bool {
+    Level55 = PowerSettings.shared.bool {
       name="Level 5-5",
       id="floors.l55",
       desc="Allow activation on level 5-5?",
@@ -474,7 +476,7 @@ do
     }
   end
 
-  GroupComponents = Settings.group {
+  GroupComponents = PowerSettings.group {
     name="Components settings",
     id="components",
     desc="Settings that influence how item components affect generation",
@@ -482,7 +484,7 @@ do
   }
 
   do
-    ComponentsNotTaken = Settings.shared.string {
+    ComponentsNotTaken = PowerSettings.shared.string {
       name="Don't take components",
       id="components.takeComponent",
       desc="Space-separated list of components whose items shouldn't be taken.",
@@ -490,7 +492,7 @@ do
       default="itemBanInnateSpell"
     }
 
-    ComponentsNotGiven = Settings.shared.string {
+    ComponentsNotGiven = PowerSettings.shared.string {
       name="Don't give components",
       id="components.giveComponent",
       desc="Space-separated list of components whose items shouldn't be given.",
@@ -498,7 +500,7 @@ do
       default="itemIncomingDamageIncrease itemBanInnateSpell"
     }
 
-    ItemsNotTaken = Settings.entitySchema.string {
+    ItemsNotTaken = PowerSettings.entitySchema.string {
       name="Don't take items",
       id="components.takeItem",
       desc="Space-separated list of items shouldn't be taken.",
@@ -506,7 +508,7 @@ do
       default="MiscPotion CharmLuck RingWonder HeadCrownOfGreed"
     }
 
-    ItemsNotGiven = Settings.entitySchema.string {
+    ItemsNotGiven = PowerSettings.entitySchema.string {
       name="Don't give items",
       id="components.giveItem",
       desc="Space-separated list of items shouldn't be given.",
@@ -514,7 +516,7 @@ do
       default=""
     }
 
-    ComponentChecker = Settings.shared.string {
+    ComponentChecker = PowerSettings.shared.string {
       name="Check components of",
       id="components.check",
       desc="Item for which components should be checked",
@@ -522,7 +524,7 @@ do
       default=""
     }
 
-    ComponentCheck = Settings.shared.action {
+    ComponentCheck = PowerSettings.shared.action {
       name="Check",
       id="components.checkexecute",
       desc="Check the components",
@@ -533,7 +535,7 @@ do
 
   --[[]]
 
-  GeneratorType = Settings.shared.enum {
+  GeneratorType = PowerSettings.shared.enum {
     name="Generator type",
     id="type",
     desc="The type of generator to use for generated items.",
@@ -542,7 +544,7 @@ do
     default=enumGenType.CONJURER
   }
 
-  SellItems = Settings.shared.percent {
+  SellItems = PowerSettings.shared.percent {
     name="Sell items",
     id="sell",
     desc="Should destroyed items be sold and the profits given to the player?",
@@ -553,7 +555,7 @@ do
     default=0
   }
 
-  GuaranteedTransmute = Settings.shared.bool {
+  GuaranteedTransmute = PowerSettings.shared.bool {
     name="Guaranteed transmutations",
     id="guarantees",
     desc="Should guaranteed transmutations be honoried, i.e. a Ring of Becoming always becomes a Ring of Wonder?",
@@ -561,7 +563,7 @@ do
     default=true
   }
 
-  AllowDeath = Settings.shared.bool {
+  AllowDeath = PowerSettings.shared.bool {
     name="Allow deadly items",
     id="deadly",
     desc="Should items that are *only* PICKUP_DEATH banned be allowed? They won't kill from the mod.",
