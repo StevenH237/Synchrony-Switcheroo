@@ -10,10 +10,12 @@ local ItemGeneration  = require "necro.game.item.ItemGeneration"
 local Menu            = require "necro.menu.Menu"
 local Player          = require "necro.game.character.Player"
 local RNG             = require "necro.game.system.RNG"
+local RunState        = require "necro.game.system.RunState"
 local Settings        = require "necro.config.Settings"
 local SettingsStorage = require "necro.config.SettingsStorage"
 local Snapshot        = require "necro.game.system.Snapshot"
 local Try             = require "system.utils.Try"
+local Utilities       = require "system.utils.Utilities"
 
 local Slots    = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Item", "Spells", "Charms"}
 local SlotIDs  = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Action", "Spell", "Misc"}
@@ -82,6 +84,12 @@ local enumSlotType = Enum.sequence {
   ONCE=3,
   UNLOCKED_ONCE_THEN_YES=4,
   UNLOCKED_ONCE_THEN_NO=5
+}
+
+local enumSeenItems = Enum.sequence {
+  IGNORED=0,
+  RESET_AFTER_EACH=1,
+  UNAFFECTED=2
 }
 
 ----------------
@@ -561,6 +569,15 @@ do
     order=7,
     default=false
   }
+
+  SeenItems = Settings.shared.enum {
+    name="Seen items",
+    id="seen",
+    desc="How should the seen item log affect mod items?",
+    order=8,
+    default=2,
+    enum=enumSeenItems
+  }
 end
 
 ---------------
@@ -826,6 +843,16 @@ Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
     -- Shortcut if maximum is zero
     if SlotMaximum == 0 then return end
 
+    -- Save current seen items
+    local seenItemsBackup = Utilities.fastCopy(RunState.getState().seenItems)
+    local seenItems
+
+    if SeenItems == 0 then
+      seenItems = {}
+    elseif SeenItems == 1 then
+      seenItems = Utilities.fastCopy(seenItemsBackup)
+    end
+
     for i, p in ipairs(Player.getPlayerEntities()) do
       p.descentDamageImmunity.active = true
 
@@ -840,7 +867,13 @@ Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
       restockSlots(i, p, slots)
 
       p.descentDamageImmunity.active = false
+
+      if SeenItems ~= 2 then
+        RunState.getState().seenItems = Utilities.fastCopy(seenItems)
+      end
     end
+
+    RunState.getState().seenItems = seenItemsBackup
 
     FirstGen = false
   end)
