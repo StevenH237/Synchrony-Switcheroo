@@ -570,13 +570,12 @@ do
     default=false
   }
 
-  SeenItems = Settings.shared.enum {
-    name="Seen items",
+  SeenItems = Settings.shared.bool {
+    name="Use seen items",
     id="seen",
-    desc="How should the seen item log affect mod items?",
+    desc="Should seenItems be used?",
     order=8,
-    default=2,
-    enum=enumSeenItems
+    default=true
   }
 end
 
@@ -776,7 +775,7 @@ local function generateItem(rngSeed, slot, player)
   }
 
   -- Exclude seen items?
-  if slot == "Misc" then
+  if slot == "Misc" or not SeenItems then
     choiceOpts.seenItems = {}
   end
 
@@ -843,16 +842,6 @@ Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
     -- Shortcut if maximum is zero
     if SlotMaximum == 0 then return end
 
-    -- Save current seen items
-    local seenItemsBackup = Utilities.fastCopy(RunState.getState().seenItems)
-    local seenItems
-
-    if SeenItems == 0 then
-      seenItems = {}
-    elseif SeenItems == 1 then
-      seenItems = Utilities.fastCopy(seenItemsBackup)
-    end
-
     for i, p in ipairs(Player.getPlayerEntities()) do
       p.descentDamageImmunity.active = true
 
@@ -867,13 +856,7 @@ Event.levelLoad.add("switchBuilds", {order="entities", sequence=2}, function(ev)
       restockSlots(i, p, slots)
 
       p.descentDamageImmunity.active = false
-
-      if SeenItems ~= 2 then
-        RunState.getState().seenItems = Utilities.fastCopy(seenItems)
-      end
     end
-
-    RunState.getState().seenItems = seenItemsBackup
 
     FirstGen = false
   end)
