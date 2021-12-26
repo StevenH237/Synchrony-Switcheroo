@@ -86,12 +86,6 @@ local enumSlotType = Enum.sequence {
   UNLOCKED_ONCE_THEN_NO=5
 }
 
-local enumSeenItems = Enum.sequence {
-  IGNORED=0,
-  RESET_AFTER_EACH=1,
-  UNAFFECTED=2
-}
-
 ----------------
 -- COMPONENTS --
 ----------------
@@ -569,14 +563,6 @@ do
     order=7,
     default=false
   }
-
-  SeenItems = Settings.shared.bool {
-    name="Use seen items",
-    id="seen",
-    desc="Should seenItems be used?",
-    order=8,
-    default=true
-  }
 end
 
 ---------------
@@ -771,11 +757,12 @@ local function generateItem(rngSeed, slot, player)
     slot = slot:lower(),
     chanceType = GenTypes[GeneratorType],
     default = Defaults[slot],
-    excludedComponents = splitToList("Switcheroo_noGive " .. ComponentsNotGiven)
+    excludedComponents = splitToList("Switcheroo_noGive " .. ComponentsNotGiven),
+    depletionLimit = 9999
   }
 
   -- Exclude seen items?
-  if slot == "Misc" or not SeenItems then
+  if slot == "Misc" then
     choiceOpts.seenItems = {}
   end
 
