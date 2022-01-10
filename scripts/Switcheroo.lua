@@ -761,11 +761,6 @@ local function generateItem(rngSeed, slot, player)
     depletionLimit = 9999
   }
 
-  -- Exclude seen items?
-  if slot == "Misc" then
-    choiceOpts.seenItems = {}
-  end
-
   -- Are we checking bans?
   choiceOpts.banMask = 0
   choiceOpts.player = player
