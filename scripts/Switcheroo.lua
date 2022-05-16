@@ -10,10 +10,12 @@ local ItemGeneration  = require "necro.game.item.ItemGeneration"
 local Menu            = require "necro.menu.Menu"
 local Player          = require "necro.game.character.Player"
 local RNG             = require "necro.game.system.RNG"
+local RunState        = require "necro.game.system.RunState"
 local Settings        = require "necro.config.Settings"
 local SettingsStorage = require "necro.config.SettingsStorage"
 local Snapshot        = require "necro.game.system.Snapshot"
 local Try             = require "system.utils.Try"
+local Utilities       = require "system.utils.Utilities"
 
 local Slots    = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Item", "Spells", "Charms"}
 local SlotIDs  = {"Head", "Shovel", "Feet", "Weapon", "Body", "Torch", "Ring", "Action", "Spell", "Misc"}
@@ -762,13 +764,9 @@ local function generateItem(rngSeed, slot, player)
     slot = slot:lower(),
     chanceType = GenTypes[GeneratorType],
     default = Defaults[slot],
-    excludedComponents = splitToList("Switcheroo_noGive " .. ComponentsNotGiven)
+    excludedComponents = splitToList("Switcheroo_noGive " .. ComponentsNotGiven),
+    depletionLimit = 9999
   }
-
-  -- Exclude seen items?
-  if slot == "Misc" then
-    choiceOpts.seenItems = {}
-  end
 
   -- Are we checking bans?
   choiceOpts.banMask = 0
