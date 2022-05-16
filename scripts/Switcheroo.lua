@@ -127,7 +127,14 @@ do
     print(Entities.getEntityPrototype(item))
   end
 
-  -- Settings nodes--
+  -- Settings nodes --
+  GroupPresets = Settings.group {
+    name="Presets",
+    id="preset",
+    desc="Featured play modes chosen by the mod's author",
+    order=-1
+  }
+  
   GroupChance = Settings.group {
     name="Slot chances",
     id="chance",
