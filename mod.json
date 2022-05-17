@@ -5,7 +5,9 @@
 	"synchronyVersion": "0.54",
 	"description": "Changes your build throughout the run! Inspired by Build Mutator.",
 	"author": "Nixill",
-	"dependencies": {},
+	"dependencies": {
+		"PowerSettings": "1.1.0"
+	},
 	"api": {
 		"scriptPath": "scripts"
 	},
