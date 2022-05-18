@@ -168,6 +168,53 @@ DontgiveDeadlyitems = PowerSettings.entitySchema.bool {
   format = itemBanFormat
 }
 
+DontgiveBanneditems = PowerSettings.entitySchema.bool {
+  name = "Banned items",
+  desc = "Whether or not items normally banned for a character should be banned from the item pool.",
+  id = "dontGive.bannedItems",
+  order = 6,
+  default = true,
+  format = itemBanFormat
+}
+
+DontgiveOther = PowerSettings.group {
+  name = "Other (advanced)...",
+  desc = "Specify your own items to never give.",
+  id = "dontGive.other",
+  order = 7
+}
+
+--#region Don't give other
+
+DontgiveOtherItems = PowerSettings.entitySchema.list.entity {
+  name = "Items",
+  desc = "Specific items that shouldn't be given.",
+  id = "dontGive.other.items",
+  order = 0,
+  default = {},
+  filter = "item",
+  itemDefault = "MiscPotion"
+}
+
+DontgiveOtherComponents = PowerSettings.entitySchema.list.component {
+  name = "Components",
+  desc = "Specific components that shouldn't be given.",
+  id = "dontGive.other.components",
+  order = 1,
+  default = {},
+  itemDefault = "item"
+}
+
+--#enregion Don't give other
+
 --#endregion Don't Give items...
+
+--#region Don't take items...
+
+Donttake = PowerSettings.group {
+  name = "Don't take items..."
+}
+
+--#endregion Don't take items...
 
 --#endregion
