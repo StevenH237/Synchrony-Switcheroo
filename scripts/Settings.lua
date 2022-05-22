@@ -6,7 +6,7 @@ local SettingsStorage = require "necro.config.SettingsStorage"
 
 local PowerSettings = require "PowerSettings.PowerSettings"
 
-local SwEnum = require "Switcheroo.SwitcherooEnum"
+local SwEnum = require "Switcheroo.Enum"
 --#endregion Imports
 
 ---------------
