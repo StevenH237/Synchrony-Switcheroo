@@ -109,7 +109,7 @@ Replacement_Advanced = PowerSettings.entitySchema.bool {
 Replacement_SwitchToAdvanced = PowerSettings.entitySchema.action {
   name = "Switch to advanced",
   desc = "Switch to advanced mode for these settings.",
-  id = "replacement.switchToAdvanced",
+  id = "replacement.showAdvanced",
   order = 0,
   visibleIf = function() return isSectionAdvanced("replacement", nil) end,
   action = function() setSectionAdvanced("replacement", true) end
@@ -143,7 +143,7 @@ Replacement_SimpleChance = PowerSettings.entitySchema.percent {
 Replacement_SwitchToSimple = PowerSettings.entitySchema.action {
   name = "Switch to simple",
   desc = "Switch to simple mode for these settings.",
-  id = "replacement.switchToSimple",
+  id = "replacement.hideAdvanced",
   order = 0,
   visibleIf = function() return isSectionAdvanced("replacement", true) end,
   action = function() setSectionAdvanced("replacement", false) end
@@ -218,7 +218,6 @@ Replacement_AdvancedMaxSlots = PowerSettings.entitySchema.number {
   lowerBound = function()
     return get("replacement.advancedFullMinSlots") + get("replacement.advancedEmptyMinSlots")
   end,
-  maximum = 20,
   format = maxSlotsFormat
 }
 
@@ -604,7 +603,7 @@ Other_Slots_Unlocked = PowerSettings.entitySchema.bitflag {
   order = 0,
   flags = SwEnum.SlotsBitmask,
   presets = SwEnum.SlotPresets,
-  default = SwEnum.SlotPresets.ALL_SLOTS
+  default = SwEnum.SlotPresets.NO_SLOTS
 }
 
 Other_Slots_OneTime = PowerSettings.entitySchema.bitflag {
@@ -614,7 +613,7 @@ Other_Slots_OneTime = PowerSettings.entitySchema.bitflag {
   order = 0,
   flags = SwEnum.SlotsBitmask,
   presets = SwEnum.SlotPresets,
-  default = SwEnum.SlotPresets.ALL_SLOTS
+  default = SwEnum.SlotPresets.NO_SLOTS
 }
 
 --#endregion Slot settings
