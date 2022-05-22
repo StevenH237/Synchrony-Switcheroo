@@ -662,3 +662,4 @@ Other_Generator = PowerSettings.entitySchema.enum {
 --#endregion Other
 
 --#endregion
+return { get = get }
