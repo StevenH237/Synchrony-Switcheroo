@@ -97,5 +97,50 @@ Event.entitySchemaLoadEntity.add("addComponents", { order = "overrides" }, funct
   -- Should the item be exempt from giving?
   if itemNamesNotGiven[entity.name] then
     entity.Switcheroo_noGive = {}
+    goto noTake
+  else
+    -- Are any of the components exempt from giving?
+    for k, v in pairs(componentsNotGiven) do
+      if entity[k] then
+        entity.Switcheroo_noGive = {}
+        goto noTake
+      end
+    end
+
+    -- Is it magic food, and is magic food banned?
+    if entity.consumableHeal and entity.consumableHeal.overheal and SwSettings.get("dontGive.magicFood") then
+      entity.Switcheroo_noGive = {}
+      goto noTake
+    end
   end
+
+  entity.Switcheroo_noGive = false
+
+  ::noTake::
+  -- Should the item be exempt from taking?
+  if itemNamesNeverTaken[entity.name] then
+    entity.Switcheroo_noTake = {}
+    goto endTake
+  elseif itemNamesNotTakenUnlessGiven[entity.name] then
+    entity.Switcheroo_noTake = { unlessGiven = true }
+    goto endTake
+  end
+
+  for k, v in pairs(componentsNeverTaken) do
+    if entity[k] then
+      entity.Switcheroo_noTake = {}
+      goto endTake
+    end
+  end
+
+  for k, v in pairs(componentsNotTakenUnlessGiven) do
+    if entity[k] then
+      entity.Switcheroo_noTake = { unlessGiven = true }
+      goto endTake
+    end
+  end
+
+  entity.Switcheroo_noTake = false
+
+  ::endTake::
 end)
