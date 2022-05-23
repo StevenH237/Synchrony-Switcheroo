@@ -50,8 +50,10 @@
   * `replacement.advancedFullReplaceChance`: percent (default `1`)
   * `replacement.advancedFullSelectChance`: percent (default `1`)
   * `replacement.advancedMaxSlots`: number (`?-*`, default `20`)
+  * `replacement.advancedMinSlots`: number (`0-?`, default `20`)
   * `replacement.hideAdvanced`: action
   * `replacement.showAdvanced`: action
   * `replacement.simpleChance`: percent (default `100%`)
   * `replacement.simpleMode`: enum (`SwEnum.ReplaceMode`, default `.EVERYTHING`)
 * `sellItems`: percent (`0-2`, default `0`)
+* `version`: number (internal use only)

@@ -208,15 +208,26 @@ Replacement_AdvancedFullMinSlots = PowerSettings.entitySchema.number {
   end
 }
 
+Replacement_AdvancedMinSlots = PowerSettings.entitySchema.number {
+  name = "Minimum total slots",
+  desc = "The number of slots that must be picked, if it's more than the two individual minimums.",
+  id = "replacement.advancedMinSlots",
+  order = 6,
+  visibleIf = function() return isSectionAdvanced("replacement", true) end,
+  default = 0,
+  minimum = 0,
+  upperBound = "replacement.advancedMaxSlots"
+}
+
 Replacement_AdvancedMaxSlots = PowerSettings.entitySchema.number {
   name = "Maximum slots",
   desc = "The highest number of slots that must be picked.",
   id = "replacement.advancedMaxSlots",
-  order = 6,
+  order = 7,
   visibleIf = function() return isSectionAdvanced("replacement", true) end,
   default = 20,
   lowerBound = function()
-    return get("replacement.advancedFullMinSlots") + get("replacement.advancedEmptyMinSlots")
+    return math.max(get("replacement.advancedFullMinSlots") + get("replacement.advancedEmptyMinSlots"), get("replacement.advancedMinSlots"))
   end,
   format = maxSlotsFormat
 }
@@ -659,6 +670,15 @@ Other_Generator = PowerSettings.entitySchema.enum {
 }
 
 --#endregion Other
+
+Version = PowerSettings.shared.number {
+  name = "Version",
+  desc = "Version of Switcheroo in which this preset was made.",
+  id = "version",
+  visibleIf = false,
+  ignoredIf = false,
+  writeLayer = Settings.Layer.REMOTE_OVERRIDE
+}
 
 --#endregion
 return { get = get }
