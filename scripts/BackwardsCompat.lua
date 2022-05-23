@@ -174,6 +174,16 @@ function module.ImportV1Settings()
   end
 
   -- Now we need to import the floors settings.
+  local floorMask = 0
+  for d = 1, 5 do
+    for l = 1, 4 do
+      local exp = d * 4 + l
+      local val = 2 ^ exp
+      if getSetting("floors.l" .. d .. l) ~= false then
+        floorMask = floorMask + val
+      end
+    end
+  end
 end
 
 return module
