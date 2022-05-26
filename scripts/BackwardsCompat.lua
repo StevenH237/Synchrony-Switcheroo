@@ -1,3 +1,4 @@
+local Enum            = require "system.utils.Enum"
 local Settings        = require "necro.config.Settings"
 local SettingsStorage = require "necro.config.SettingsStorage"
 
@@ -18,6 +19,28 @@ local function clearSettings(prefix, settings)
     SettingsStorage.set("mod.Switcheroo." .. prefix .. v, nil, Settings.Layer.REMOTE_PENDING)
   end
 end
+
+local enumGenType = Enum.sequence {
+  UNWEIGHTED = 0,
+  CHEST = 1,
+  LOCKED_CHEST = 2,
+  SHOP = 3,
+  LOCKED_SHOP = 4,
+  URN = 5,
+  RED_CHEST = 6,
+  PURPLE_CHEST = 7,
+  BLACK_CHEST = 8,
+  CONJURER = 9
+}
+
+local enumSlotType = Enum.sequence {
+  NO = 0,
+  YES = 1,
+  UNLOCKED = 2,
+  ONCE = 3,
+  UNLOCKED_ONCE_THEN_YES = 4,
+  UNLOCKED_ONCE_THEN_NO = 5
+}
 
 local module = {}
 
@@ -175,14 +198,46 @@ function module.ImportV1Settings()
 
   -- Now we need to import the floors settings.
   local floorMask = 0
+  local useFloorMask = false
+
   for d = 1, 5 do
     for l = 1, 4 do
       local exp = d * 4 + l
       local val = 2 ^ exp
-      if getSetting("floors.l" .. d .. l) ~= false then
+      local stg = getSetting("floors.l" .. d .. l)
+
+      if stg ~= nil then
+        useFloorMask = true
+      end
+
+      if stg ~= false then
         floorMask = floorMask + val
       end
     end
+  end
+
+  -- Including the little extra bits
+  if getSetting("floors.l55") ~= false then
+    useFloorMask = true
+    floorMask = floorMask + 2 ^ 24
+  end
+
+  if useFloorMask then
+    setSetting("allowedFloors", floorMask)
+  end
+
+  -- The "guarantees" setting node is unchanged.
+  -- "sell" became "sellItems", with no other effect.
+  setSetting("sellItems", getSetting("sell"))
+
+  -- Now the slots!
+  local slotMask = 0
+  local unlockMask = 0
+  local onceMask = 0
+  local useSlotMasks = false
+
+  for i, v in ipairs(SwEnum.Slots) do
+
   end
 end
 
