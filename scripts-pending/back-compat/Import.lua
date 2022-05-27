@@ -236,8 +236,12 @@ function module.ImportV1Settings()
   local onceMask = 0
   local useSlotMasks = false
 
-  for i, v in ipairs(SwEnum.Slots) do
+  for k, v in pairs(SwEnum.SlotsBitmask) do
+    local val = getSetting("slots." .. k:lower())
 
+    if val ~= nil then
+
+    end
   end
 end
 
