@@ -97,7 +97,7 @@ Replacement = PowerSettings.group {
 --#region Replacement settings
 
 -- Hidden setting controlling advanced mode
-Replacement_Advanced = PowerSettings.entitySchema.bool {
+Replacement_Advanced = PowerSettings.shared.bool {
   id = "replacement.advanced",
   default = false,
   visibleIf = false,
@@ -106,7 +106,7 @@ Replacement_Advanced = PowerSettings.entitySchema.bool {
 
 --#region Replacement settings (simple)
 
-Replacement_SwitchToAdvanced = PowerSettings.entitySchema.action {
+Replacement_SwitchToAdvanced = PowerSettings.shared.action {
   name = "Switch to advanced",
   desc = "Switch to advanced mode for these settings.",
   id = "replacement.showAdvanced",
@@ -115,7 +115,7 @@ Replacement_SwitchToAdvanced = PowerSettings.entitySchema.action {
   action = function() setSectionAdvanced("replacement", true) end
 }
 
-Replacement_SimpleMode = PowerSettings.entitySchema.enum {
+Replacement_SimpleMode = PowerSettings.shared.enum {
   name = "Replace mode",
   desc = "Whether to replace existing items, generate new items, or both",
   id = "replacement.simpleMode",
@@ -125,7 +125,7 @@ Replacement_SimpleMode = PowerSettings.entitySchema.enum {
   default = SwEnum.ReplaceMode.EVERYTHING
 }
 
-Replacement_SimpleChance = PowerSettings.entitySchema.percent {
+Replacement_SimpleChance = PowerSettings.shared.percent {
   name = "Replace chance",
   desc = "Chance to replace items in selected inventory slots",
   id = "replacement.simpleChance",
@@ -140,7 +140,7 @@ Replacement_SimpleChance = PowerSettings.entitySchema.percent {
 
 --#region Replacement settings (advanced)
 
-Replacement_SwitchToSimple = PowerSettings.entitySchema.action {
+Replacement_SwitchToSimple = PowerSettings.shared.action {
   name = "Switch to simple",
   desc = "Switch to simple mode for these settings.",
   id = "replacement.hideAdvanced",
@@ -149,7 +149,7 @@ Replacement_SwitchToSimple = PowerSettings.entitySchema.action {
   action = function() setSectionAdvanced("replacement", false) end
 }
 
-Replacement_AdvancedEmptyChance = PowerSettings.entitySchema.percent {
+Replacement_AdvancedEmptyChance = PowerSettings.shared.percent {
   name = "Empty slot fill chance",
   desc = "The chance an empty slot is selected and filled.",
   id = "replacement.advancedEmptyChance",
@@ -160,7 +160,7 @@ Replacement_AdvancedEmptyChance = PowerSettings.entitySchema.percent {
   editAsString = true
 }
 
-Replacement_AdvancedEmptyMinSlots = PowerSettings.entitySchema.number {
+Replacement_AdvancedEmptyMinSlots = PowerSettings.shared.number {
   name = "Minimum empty slots",
   desc = "The number of empty slots that must be picked (if that many exist), even if 0% chance.",
   id = "replacement.advancedEmptyMinSlots",
@@ -173,7 +173,7 @@ Replacement_AdvancedEmptyMinSlots = PowerSettings.entitySchema.number {
   end
 }
 
-Replacement_AdvancedFullSelectChance = PowerSettings.entitySchema.percent {
+Replacement_AdvancedFullSelectChance = PowerSettings.shared.percent {
   name = "Full slot selection chance",
   desc = "The chance a filled slot is selected and emptied.",
   id = "replacement.advancedFullSelectChance",
@@ -184,7 +184,7 @@ Replacement_AdvancedFullSelectChance = PowerSettings.entitySchema.percent {
   editAsString = true
 }
 
-Replacement_AdvancedFullReplaceChance = PowerSettings.entitySchema.percent {
+Replacement_AdvancedFullReplaceChance = PowerSettings.shared.percent {
   name = "Selected slot replacement chance",
   desc = "The chance a selected (filled) slot is replaced.",
   id = "replacement.advancedFullReplaceChance",
@@ -195,7 +195,7 @@ Replacement_AdvancedFullReplaceChance = PowerSettings.entitySchema.percent {
   editAsString = true
 }
 
-Replacement_AdvancedFullMinSlots = PowerSettings.entitySchema.number {
+Replacement_AdvancedFullMinSlots = PowerSettings.shared.number {
   name = "Minimum full slots",
   desc = "The number of full slots that must be picked (if that many exist), even if 0% chance.",
   id = "replacement.advancedFullMinSlots",
@@ -208,7 +208,7 @@ Replacement_AdvancedFullMinSlots = PowerSettings.entitySchema.number {
   end
 }
 
-Replacement_AdvancedMinSlots = PowerSettings.entitySchema.number {
+Replacement_AdvancedMinSlots = PowerSettings.shared.number {
   name = "Minimum total slots",
   desc = "The number of slots that must be picked, if it's more than the two individual minimums.",
   id = "replacement.advancedMinSlots",
@@ -219,7 +219,7 @@ Replacement_AdvancedMinSlots = PowerSettings.entitySchema.number {
   upperBound = "replacement.advancedMaxSlots"
 }
 
-Replacement_AdvancedMaxSlots = PowerSettings.entitySchema.number {
+Replacement_AdvancedMaxSlots = PowerSettings.shared.number {
   name = "Maximum slots",
   desc = "The highest number of slots that must be picked.",
   id = "replacement.advancedMaxSlots",
@@ -236,7 +236,7 @@ Replacement_AdvancedMaxSlots = PowerSettings.entitySchema.number {
 
 --#endregion Replacement settings
 
-AllowedFloors = PowerSettings.entitySchema.bitflag {
+AllowedFloors = PowerSettings.shared.bitflag {
   name = "Allowed floors",
   desc = "The floors on which the mod can activate.",
   id = "allowedFloors",
@@ -246,7 +246,7 @@ AllowedFloors = PowerSettings.entitySchema.bitflag {
   presets = SwEnum.FloorPresets
 }
 
-SellItems = PowerSettings.entitySchema.percent {
+SellItems = PowerSettings.shared.percent {
   name = "Sell items",
   desc = "Price for which to sell removed items.",
   id = "sellItems",
@@ -256,7 +256,7 @@ SellItems = PowerSettings.entitySchema.percent {
   format = sellPrice
 }
 
-Guarantees = PowerSettings.entitySchema.bool {
+Guarantees = PowerSettings.shared.bool {
   name = "Honor guaranteed transmutations",
   desc = "Whether or not transmutes/transmogs with fixed outcomes should be honored.",
   id = "guarantees",
@@ -563,20 +563,20 @@ Other = PowerSettings.group {
 
 --#region Other
 
-Other_Advanced = PowerSettings.entitySchema.bool {
+Other_Advanced = PowerSettings.shared.bool {
   id = "other.advanced",
   default = false,
   visibleIf = false,
   ignoredIf = false
 }
 
-Other_HideAdvancedLabel = PowerSettings.entitySchema.label {
+Other_HideAdvancedLabel = PowerSettings.shared.label {
   name = "Note: Disabling these options closes this menu. Reopening this menu re-enables these options.",
   id = "other.hideAdvancedLabel",
   order = 0
 }
 
-Other_HideAdvanced = PowerSettings.entitySchema.action {
+Other_HideAdvanced = PowerSettings.shared.action {
   name = "Disable advanced options",
   desc = "Disable and hide these options.",
   id = "other.hideAdvanced",
@@ -597,7 +597,7 @@ Other_Slots = PowerSettings.group {
 
 --#region Slot settings
 
-Other_Slots_Allowed = PowerSettings.entitySchema.bitflag {
+Other_Slots_Allowed = PowerSettings.shared.bitflag {
   name = "Allowed slots",
   desc = "Which slots can the mod alter?",
   id = "other.slots.allowed",
@@ -607,7 +607,7 @@ Other_Slots_Allowed = PowerSettings.entitySchema.bitflag {
   default = SwEnum.SlotPresets.ALL_SLOTS
 }
 
-Other_Slots_Unlocked = PowerSettings.entitySchema.bitflag {
+Other_Slots_Unlocked = PowerSettings.shared.bitflag {
   name = "Unlocked slots",
   desc = "Which slots can the mod ignore item bans within?",
   id = "other.slots.unlocked",
@@ -617,7 +617,7 @@ Other_Slots_Unlocked = PowerSettings.entitySchema.bitflag {
   default = SwEnum.SlotPresets.NO_SLOTS
 }
 
-Other_Slots_OneTime = PowerSettings.entitySchema.bitflag {
+Other_Slots_OneTime = PowerSettings.shared.bitflag {
   name = "One-time slots",
   desc = "Which slots can the mod only alter once?",
   id = "other.slots.oneTime",
@@ -644,7 +644,7 @@ Other_Charms_Algorithm = PowerSettings.entitySchema.enum {
   id = 
 }
 
-Other_Charms_MaxAdd = PowerSettings.entitySchema.number {
+Other_Charms_MaxAdd = PowerSettings.shared.number {
   name = "Maximum added charms",
   desc = "How many charms can the mod add per floor?",
   id = "other.charms.maxAdd",
@@ -654,7 +654,7 @@ Other_Charms_MaxAdd = PowerSettings.entitySchema.number {
   editAsString = true
 }
 
-Other_Charms_MaxTotal = PowerSettings.entitySchema.number {
+Other_Charms_MaxTotal = PowerSettings.shared.number {
   name = "Maximum total charms",
   desc = "How many charms can you have before the mod stops adding?",
   id = "other.charms.maxTotal",
@@ -666,7 +666,7 @@ Other_Charms_MaxTotal = PowerSettings.entitySchema.number {
 
 --#endregion Charms settings
 
-Other_Generator = PowerSettings.entitySchema.enum {
+Other_Generator = PowerSettings.shared.enum {
   name = "Generator type",
   desc = "Which generator should be used for the mod?",
   id = "other.generator",
