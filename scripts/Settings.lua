@@ -456,7 +456,7 @@ DontTake_Advanced = PowerSettings.entitySchema.bool {
   ignoredIf = false
 }
 
-DontGive_ShowAdvanced = PowerSettings.entitySchema.action {
+DontTake_ShowAdvanced = PowerSettings.entitySchema.action {
   name = "Show advanced options",
   desc = "Show the advanced options for items not being taken.",
   id = "dontTake.showAdvanced",
