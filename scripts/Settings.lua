@@ -638,11 +638,17 @@ Other_Charms = PowerSettings.group {
 
 --#region Charms settings
 
-Other_Charms_Algorithm = PowerSettings.entitySchema.enum {
+Other_Charms_Algorithm = PowerSettings.shared.enum {
   name = "Algorithm used",
   desc = "Which charms algorithm should be used?",
-  id = 
+  id = "other.charms.algorithm",
+  order = 0,
+  enum = SwEnum.CharmsAlgorithm,
+  default = SwEnum.CharmsAlgorithm.DICE_BASED,
+  refreshOnChange = true
 }
+
+--#region Charms algorithm settings
 
 Other_Charms_MaxAdd = PowerSettings.shared.number {
   name = "Maximum added charms",
@@ -651,7 +657,10 @@ Other_Charms_MaxAdd = PowerSettings.shared.number {
   order = 0,
   minimum = 0,
   default = 1,
-  editAsString = true
+  editAsString = true,
+  visibleIf = function()
+    return get("other.charms.algorithm") == SwEnum.CharmsAlgorithm.ADD_ONE
+  end
 }
 
 Other_Charms_MaxTotal = PowerSettings.shared.number {
@@ -661,8 +670,99 @@ Other_Charms_MaxTotal = PowerSettings.shared.number {
   order = 1,
   minimum = 0,
   default = 5,
-  editAsString = true
+  editAsString = true,
+  visibleIf = function()
+    return get("other.charms.algorithm") == SwEnum.CharmsAlgorithm.ADD_ONE
+  end
 }
+
+Other_Charms_DiceCount = PowerSettings.shared.number {
+  name = "Dice to roll",
+  desc = "Dice to roll for charm counts.",
+  id = "other.charms.diceCount",
+  order = 0,
+  lowerBound = function()
+    return math.abs(get("other.charms.diceDrop")) + 1
+  end,
+  maximum = 10,
+  default = 3,
+  editAsString = true,
+  visibleIf = function()
+    return get("other.charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+  end
+}
+
+Other_Charms_DiceSides = PowerSettings.shared.number {
+  name = "Sides on dice",
+  desc = "Sides on the dice to roll for charm counts.",
+  id = "other.charms.diceSides",
+  order = 1,
+  minimum = 2,
+  maximum = 10,
+  default = 4,
+  editAsString = true,
+  visibleIf = function()
+    return get("other.charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+  end
+}
+
+Other_Charms_DiceDrop = PowerSettings.shared.number {
+  name = "Dice to drop",
+  desc = "Drop some rolled dice, either the highest or lowest.",
+  id = "other.charms.diceDrop",
+  order = 2,
+  lowerBound = function()
+    return -get("other.charms.diceCount") + 1
+  end,
+  upperBound = function()
+    return get("other.charms.diceCount") - 1
+  end,
+  default = 0,
+  editAsString = true,
+  visibleIf = function()
+    return get("other.charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+  end
+}
+
+Other_Charms_DiceAddStatic = PowerSettings.shared.number {
+  name = "Plus",
+  desc = "Add a static number of charms to the roll.",
+  id = "other.charms.diceAddStatic",
+  order = 3,
+  default = 0,
+  editAsString = true,
+  visibleIf = function()
+    return get("other.charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+  end
+}
+
+Other_Charms_DiceAddPerFloor = PowerSettings.shared.number {
+  name = "Plus per floor",
+  desc = "Add a static number of charms to the roll per floor.",
+  id = "other.charms.diceAddPerFloor",
+  order = 4,
+  default = 0,
+  step = 0.01,
+  editAsString = true,
+  visibleIf = function()
+    return get("other.charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+  end
+}
+
+Other_Charms_MultiplierPerFloor = PowerSettings.shared.number {
+  name = "Multiplier per floor",
+  desc = "Multiply the whole thing by this amount per floor (plus one).",
+  id = "other.charms.multiplierPerFloor",
+  order = 5,
+  default = 0.005,
+  step = 0.005,
+  editAsString = true,
+  visibleIf = function()
+    return get("other.charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+  end
+}
+
+--#endregion Charms algorithm settings
 
 --#endregion Charms settings
 

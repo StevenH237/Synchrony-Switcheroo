@@ -95,6 +95,11 @@ do
     CONJURER     = entry(9, "Conjurer", { bans = BanCombos.SHRINE_POOL })
   }
 end
+
+module.CharmsAlgorithm = Enum.sequence {
+  ADD_ONE    = entry(1, "Add one"),
+  DICE_BASED = entry(2, "Dice-based")
+}
 --#endregion
 
 return module
