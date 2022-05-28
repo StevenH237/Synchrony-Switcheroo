@@ -1,6 +1,7 @@
 local CurrentLevel = require "necro.game.level.CurrentLevel"
 local Event        = require "necro.event.Event"
 local GameSession  = require "necro.client.GameSession"
+local Try          = require "system.utils.Try"
 
 local NixLib     = require "NixLib.NixLib"
 local checkFlags = NixLib.checkFlags
@@ -87,6 +88,10 @@ end
 
 Event.levelload.add("switchBuilds", { order = "entities", sequence = -2 }, function(ev)
   if not canRunHere() then goto noRun end
+
+  Try.catch(function()
+
+  end)
 
   ::noRun::
   lastFloorBoss = CurrentLevel.isBoss()

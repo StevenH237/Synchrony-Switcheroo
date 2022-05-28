@@ -227,7 +227,7 @@ Replacement_AdvancedMaxSlots = PowerSettings.entitySchema.number {
   visibleIf = function() return isSectionAdvanced("replacement", true) end,
   default = 20,
   lowerBound = function()
-    return math.max(get("replacement.advancedFullMinSlots") + get("replacement.advancedEmptyMinSlots"), get("replacement.advancedMinSlots"))
+    return math.max(get("replacement.advancedFullMinSlots") + get("replacement.advancedEmptyMinSlots"), get("replacement.advancedMinSlots"), 1)
   end,
   format = maxSlotsFormat
 }
@@ -637,6 +637,12 @@ Other_Charms = PowerSettings.group {
 }
 
 --#region Charms settings
+
+Other_Charms_Algorithm = PowerSettings.entitySchema.enum {
+  name = "Algorithm used",
+  desc = "Which charms algorithm should be used?",
+  id = 
+}
 
 Other_Charms_MaxAdd = PowerSettings.entitySchema.number {
   name = "Maximum added charms",
