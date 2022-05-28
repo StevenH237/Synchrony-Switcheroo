@@ -677,14 +677,5 @@ Other_Generator = PowerSettings.shared.enum {
 
 --#endregion Other
 
-Version = PowerSettings.shared.number {
-  name = "Version",
-  desc = "Version of Switcheroo in which this preset was made.",
-  id = "version",
-  visibleIf = false,
-  ignoredIf = false,
-  writeLayer = Settings.Layer.REMOTE_OVERRIDE
-}
-
 --#endregion
 return { get = get }
