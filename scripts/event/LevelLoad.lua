@@ -86,7 +86,7 @@ end
 -- EVENT HANDLER --
 --#region----------
 
-Event.levelload.add("switchBuilds", { order = "entities", sequence = -2 }, function(ev)
+Event.levelLoad.add("switchBuilds", { order = "entities", sequence = -2 }, function(ev)
   if not canRunHere() then goto noRun end
 
   Try.catch(function()
