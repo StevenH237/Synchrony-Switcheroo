@@ -77,8 +77,8 @@ end
 
 do
   local BanCombos = {
-    ITEM_POOL = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_ITEM_POOL,
-    CRATE_POOL = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_CRATE,
+    ITEM_POOL   = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_ITEM_POOL,
+    CRATE_POOL  = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_CRATE,
     SHRINE_POOL = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_SHRINE_POOL + ItemBan.Flag.GENERATE_TRANSACTION
   }
 
