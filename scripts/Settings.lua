@@ -504,6 +504,7 @@ Slots_Allowed = PowerSettings.shared.bitflag {
   desc = "Which slots can the mod alter?",
   id = "slots.allowed",
   order = 0,
+  visibleIf = function() return get("advanced") end,
   flags = SwEnum.SlotsBitmask,
   presets = SwEnum.SlotPresets,
   default = SwEnum.SlotPresets.ALL_SLOTS
@@ -514,6 +515,7 @@ Slots_Unlocked = PowerSettings.shared.bitflag {
   desc = "Which slots can the mod ignore item bans within?",
   id = "slots.unlocked",
   order = 1,
+  visibleIf = function() return get("advanced") end,
   flags = SwEnum.SlotsBitmask,
   presets = SwEnum.SlotPresets,
   default = SwEnum.SlotPresets.NO_SLOTS
@@ -524,6 +526,7 @@ Slots_OneTime = PowerSettings.shared.bitflag {
   desc = "Which slots can the mod only alter once?",
   id = "slots.oneTime",
   order = 2,
+  visibleIf = function() return get("advanced") end,
   flags = SwEnum.SlotsBitmask,
   presets = SwEnum.SlotPresets,
   default = SwEnum.SlotPresets.NO_SLOTS
@@ -546,6 +549,7 @@ Charms_Algorithm = PowerSettings.shared.enum {
   desc = "Which charms algorithm should be used?",
   id = "charms.algorithm",
   order = 0,
+  visibleIf = function() return get("advanced") end,
   enum = SwEnum.CharmsAlgorithm,
   default = SwEnum.CharmsAlgorithm.DICE_BASED,
   refreshOnChange = true
@@ -562,7 +566,7 @@ Charms_MaxAdd = PowerSettings.shared.number {
   default = 1,
   editAsString = true,
   visibleIf = function()
-    return get("charms.algorithm") == SwEnum.CharmsAlgorithm.ADD_ONE
+    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.ADD_ONE
   end
 }
 
@@ -575,7 +579,7 @@ Charms_MaxTotal = PowerSettings.shared.number {
   default = 5,
   editAsString = true,
   visibleIf = function()
-    return get("charms.algorithm") == SwEnum.CharmsAlgorithm.ADD_ONE
+    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.ADD_ONE
   end
 }
 
@@ -591,7 +595,7 @@ Charms_DiceCount = PowerSettings.shared.number {
   default = 3,
   editAsString = true,
   visibleIf = function()
-    return get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
   end
 }
 
@@ -605,7 +609,7 @@ Charms_DiceSides = PowerSettings.shared.number {
   default = 4,
   editAsString = true,
   visibleIf = function()
-    return get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
   end
 }
 
@@ -623,7 +627,7 @@ Charms_DiceDrop = PowerSettings.shared.number {
   default = 0,
   editAsString = true,
   visibleIf = function()
-    return get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
   end
 }
 
@@ -635,7 +639,7 @@ Charms_DiceAddStatic = PowerSettings.shared.number {
   default = 0,
   editAsString = true,
   visibleIf = function()
-    return get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
   end
 }
 
@@ -648,7 +652,7 @@ Charms_DiceAddPerFloor = PowerSettings.shared.number {
   step = 0.01,
   editAsString = true,
   visibleIf = function()
-    return get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
   end
 }
 
@@ -661,7 +665,7 @@ Charms_MultiplierPerFloor = PowerSettings.shared.number {
   step = 0.005,
   editAsString = true,
   visibleIf = function()
-    return get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
   end
 }
 
