@@ -1,6 +1,9 @@
 local CurrentLevel = require "necro.game.level.CurrentLevel"
 local Event        = require "necro.event.Event"
 local GameSession  = require "necro.client.GameSession"
+local Inventory    = require "necro.game.item.Inventory"
+local Player       = require "necro.game.character.Player"
+local Snapshot     = require "necro.game.system.Snapshot"
 local Try          = require "system.utils.Try"
 
 local NixLib     = require "NixLib.NixLib"
@@ -13,7 +16,8 @@ local SwSettings = require "Switcheroo.Settings"
 -- VARIABLES --
 --#region------
 
-local lastFloorBoss = nil
+local lastFloorBoss = Snapshot.runVariable(nil)
+local firstGen      = Snapshot.runVariable(true)
 
 --#endregion (Variables)
 
@@ -21,6 +25,7 @@ local lastFloorBoss = nil
 -- FUNCTIONS --
 --#region------
 
+-- Returns whether or not the mod can run on the present floor.
 local function canRunHere()
   -- This function determines whether or not Switcheroo can run on the current floor.
   -- There are several factors that determine this.
@@ -80,6 +85,79 @@ local function canRunHere()
   end
 end
 
+-- Converts a bitmask to its individual components as keys
+local function slotsToSet(enum, value)
+  local ret = {}
+  for i, v in pairs(NixLib.bitSplit(value)) do
+    ret[enum.names[v]:lower()] = true
+  end
+  return ret
+end
+
+-- Returns the allowed slots for changes
+local function getAllowedSlots(player)
+  -- Start with a list of the slots we can use
+  local allowedSlotsVal = SwSettings.get("slots.allowed")
+  local oneTimeSlotsVal = SwSettings.get("slots.once")
+  local unlockedSlotsVal = SwSettings.get("slots.unlocked")
+
+  if not firstGen then
+    allowedSlotsVal = bit.band(allowedSlotsVal, bit.bnot(oneTimeSlotsVal))
+    unlockedSlotsVal = bit.band(unlockedSlotsVal, bit.bnot(oneTimeSlotsVal))
+  end
+
+  local allowedSlots = slotsToSet(SwEnum.SlotsBitmask, allowedSlotsVal)
+  local unlockedSlots = slotsToSet(SwEnum.SlotsBitmask, unlockedSlotsVal)
+
+  local out = {}
+
+  -- Now let's run down through those slots.
+  for slot in pairs(allowedSlots) do
+    -- We'll do some special handling for misc/holster
+    if slot == "misc" or slot == "holster" then
+      goto nextSlot
+    end
+
+    -- If the slot is cursed and not unlocked, we'll move on
+    if Inventory.isCursedSlot(player, slot) then
+      goto nextSlot
+    end
+
+    -- Now get subslots
+    local cap
+    if (SwSettings.get("slots.reduce")) then
+      cap = math.max(Inventory.getSlotCapacity(), SwSettings.get("slots.capacity"))
+    else
+      cap = NixLib.median(Inventory.getSlotCapacity(), SwSettings.get("slots.capacity"), #Inventory)
+    end
+
+    -- Get the filled subslots first
+    local items = Inventory.getItemsInSlot(player, slot)
+    local index = 0
+
+    for i, item in ipairs(items) do
+      index = i
+      out[#out + 1] = {
+        slotName = slot,
+        index = index,
+        contents = item
+      }
+    end
+
+    -- Now the empty subslots
+    if index < cap then
+      for i = index + 1, cap do
+        out[#out + 1] = {
+          slotName = slot,
+          index = index
+        }
+      end
+    end
+
+    ::nextSlot::
+  end
+end
+
 --#endregion (Functions)
 
 -------------------
@@ -90,8 +168,18 @@ Event.levelLoad.add("switchBuilds", { order = "entities", sequence = -2 }, funct
   if not canRunHere() then goto noRun end
 
   Try.catch(function()
+    for i, p in ipairs(Player.getPlayerEntities()) do
+      -- Stair immunity prevents pain-on-equip items from causing pain.
+      p.descentDamageImmunity.active = true
 
+      -- First, we need to figure out which slots *can be* selected.
+      local slots = getAllowedSlots(p)
+
+      p.descentDamageImmunity.active = false
+    end
   end)
+
+  firstGen = false
 
   ::noRun::
   lastFloorBoss = CurrentLevel.isBoss()
