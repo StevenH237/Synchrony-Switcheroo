@@ -40,7 +40,9 @@
   * `other.hideAdvancedLabel`: label
   * `other.slots`: group
     * `other.slots.allowed`: bitflag (flag `SwEnum.SlotsBitmask`, default `SwEnum.SlotPresets.ALL_SLOTS`)
+    * `other.slots.capacity`: number (`0-*`, default `3`)
     * `other.slots.oneTime`: bitflag (flag `SwEnum.SlotsBitmask`, default `SwEnum.SlotPresets.NO_SLOTS`)
+    * `other.slots.reduce`: boolean (default `true`)
     * `other.slots.unlocked`: bitflag (flag `SwEnum.SlotsBitmask`, default `SwEnum.SlotPresets.NO_SLOTS`)
 * `replacement`: group
   * `replacement.advanced`: bool (default `false`)

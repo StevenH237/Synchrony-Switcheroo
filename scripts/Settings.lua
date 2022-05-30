@@ -532,6 +532,25 @@ Slots_OneTime = PowerSettings.shared.bitflag {
   default = SwEnum.SlotPresets.NO_SLOTS
 }
 
+Slots_Capacity = PowerSettings.shared.number {
+  name = "Slot capacity",
+  desc = "How many items should be given per slot, even if it can hold more? Charms not included.",
+  id = "slots.capacity",
+  order = 3,
+  visibleIf = function() return get("advanced") end,
+  default = 3,
+  minimum = 1
+}
+
+Slots_Reduce = PowerSettings.shared.bool {
+  name = "Reduce over cap",
+  desc = "If there are more items than the cap in a slot, should the items be downsized?",
+  id = "slots.reduce",
+  order = 4,
+  visibleIf = function() return get("advanced") end,
+  default = true
+}
+
 --#endregion Slot settings
 
 Charms = PowerSettings.group {
