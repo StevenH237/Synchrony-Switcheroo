@@ -6,10 +6,10 @@
   * `charms.diceAddStatic`: number (`*-*`, default `0`)
   * `charms.diceCount`: number (`?-10`, default `3`)
   * `charms.diceDrop`: number (`?-?`, default `0`)
+  * `charms.diceMultiplierPerFloor`: number (`*-*`, default `0.005`)
   * `charms.diceSides`: number (`2-10`, default `4`)
   * `charms.maxAdd`: number (`0-*`, default `1`)
   * `charms.maxTotal`: number (`0-*`, default `5`)
-  * `charms.multiplierPerFloor`: number (`*-*`, default `0.005`)
 * `dontGive`: group
   * `dontGive.advanced`: bool (default `false`)
   * `dontGive.bannedItems`: bool (default `true`)

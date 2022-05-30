@@ -675,10 +675,10 @@ Charms_DiceAddPerFloor = PowerSettings.shared.number {
   end
 }
 
-Charms_MultiplierPerFloor = PowerSettings.shared.number {
+Charms_DiceMultiplierPerFloor = PowerSettings.shared.number {
   name = "Multiplier per floor",
   desc = "Multiply the whole thing by this amount per floor (plus one).",
-  id = "charms.multiplierPerFloor",
+  id = "charms.diceMultiplierPerFloor",
   order = 5,
   default = 0.005,
   step = 0.005,
