@@ -51,6 +51,22 @@ local function maxSlotsFormat(value)
   end
 end
 
+local function diceDropFormat(value)
+  if value == 1 then
+    return "Drop highest"
+  elseif value > 1 then
+    return "Drop " .. value .. " highest"
+  elseif value == -1 then
+    return "Drop lowest"
+  elseif value < -1 then
+    return "Drop " .. (-value) .. " lowest"
+  elseif value == 0 then
+    return "Drop none"
+  else
+    return "(Invalid decimal amount.)"
+  end
+end
+
 --#endregion
 
 --------------
@@ -618,11 +634,24 @@ Charms_DiceCount = PowerSettings.shared.number {
   end
 }
 
+Charms_DicePerFloor = PowerSettings.shared.number {
+  name = "+ Dice per floor",
+  desc = "Dice to add per completed floor.",
+  id = "charms.dicePerFloor",
+  order = 1,
+  default = 0.1,
+  step = 0.05,
+  editAsString = true,
+  visibleIf = function()
+    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+  end
+}
+
 Charms_DiceSides = PowerSettings.shared.number {
   name = "Sides on dice",
   desc = "Sides on the dice to roll for charm counts.",
   id = "charms.diceSides",
-  order = 1,
+  order = 2,
   minimum = 2,
   maximum = 10,
   default = 4,
@@ -632,19 +661,23 @@ Charms_DiceSides = PowerSettings.shared.number {
   end
 }
 
+Charms_DiceSidesPerFloor = PowerSettings.shared.number {
+  name = "+ Sides per floor",
+  desc = "Sides to add to the dice for every floor.",
+  id = "charms.diceSidesPerFloor",
+  order = 3,
+  default = 0,
+  step = 0.05,
+}
+
 Charms_DiceDrop = PowerSettings.shared.number {
   name = "Dice to drop",
   desc = "Drop some rolled dice, either the highest or lowest.",
   id = "charms.diceDrop",
-  order = 2,
-  lowerBound = function()
-    return -get("charms.diceCount") + 1
-  end,
-  upperBound = function()
-    return get("charms.diceCount") - 1
-  end,
+  order = 3,
   default = 0,
   editAsString = true,
+  format = diceDropFormat,
   visibleIf = function()
     return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
   end
@@ -654,7 +687,7 @@ Charms_DiceAddStatic = PowerSettings.shared.number {
   name = "Plus",
   desc = "Add a static number of charms to the roll.",
   id = "charms.diceAddStatic",
-  order = 3,
+  order = 4,
   default = 0,
   editAsString = true,
   visibleIf = function()
@@ -666,22 +699,9 @@ Charms_DiceAddPerFloor = PowerSettings.shared.number {
   name = "Plus per floor",
   desc = "Add a static number of charms to the roll per floor.",
   id = "charms.diceAddPerFloor",
-  order = 4,
+  order = 5,
   default = 0,
   step = 0.01,
-  editAsString = true,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
-Charms_DiceMultiplierPerFloor = PowerSettings.shared.number {
-  name = "Multiplier per floor",
-  desc = "Multiply the whole thing by this amount per floor (plus one).",
-  id = "charms.diceMultiplierPerFloor",
-  order = 5,
-  default = 0.005,
-  step = 0.005,
   editAsString = true,
   visibleIf = function()
     return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
