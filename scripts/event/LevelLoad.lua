@@ -1,8 +1,11 @@
 local CurrentLevel = require "necro.game.level.CurrentLevel"
+local Entities     = require "system.game.Entities"
 local Event        = require "necro.event.Event"
 local GameSession  = require "necro.client.GameSession"
 local Inventory    = require "necro.game.item.Inventory"
+local ItemBan      = require "necro.game.item.ItemBan"
 local Player       = require "necro.game.character.Player"
+local RNG          = require "necro.game.system.RNG"
 local Snapshot     = require "necro.game.system.Snapshot"
 local Try          = require "system.utils.Try"
 
@@ -20,6 +23,12 @@ local lastFloorBoss = Snapshot.runVariable(nil)
 local firstGen      = Snapshot.runVariable(true)
 
 --#endregion (Variables)
+
+---------------
+-- CONSTANTS --
+--#region------
+
+--#endregion (Constants)
 
 ---------------
 -- FUNCTIONS --
@@ -106,6 +115,54 @@ local function channel(player)
   return ent
 end
 
+-- Returns the number of charms that should be generated on this floor.
+local function getCharmCount(player)
+  local algo = SwSettings.get("charms.algorithm")
+  local chan = channel(player)
+  local floor = CurrentLevel.getSequentialNumber()
+
+  if algo == SwEnum.CharmsAlgorithm.DICE_BASED then
+    local dice = math.floor(SwSettings.get("charms.diceCount") + SwSettings.get("charms.dicePerFloor") * floor)
+    local sides = math.max(math.floor(SwSettings.get("charms.diceSides") + SwSettings.get("charms.diceSidesPerFloor") * floor), 2)
+    local rolled = {}
+    local sum = 0
+
+    for i = 1, dice do
+      rolled[#rolled + 1] = RNG.int(sides, chan) + 1
+    end
+
+    table.sort(rolled)
+
+    -- Drop some dice
+    local drop = SwSettings.get("charms.diceDrop")
+    local dropHigh = drop > 0
+    if dropHigh then
+      for i = 1, dropHigh do
+        table.remove(rolled)
+      end
+    else
+      for i = -dropHigh, -1 do
+        table.remove(rolled, 1)
+      end
+    end
+
+    for i, v in ipairs(rolled) do
+      sum = sum + v
+    end
+
+    -- Add a static amount
+    sum = sum + SwSettings.get("charms.diceAddStatic") + math.floor(SwSettings.get("charms.diceAddPerFloor") * floor)
+
+    return sum
+  elseif algo == SwEnum.CharmsAlgorithm.ADD_ONE then
+    local count = #(Inventory.getItemsInSlot(player, "misc"))
+
+    return NixLib.median(count, count + SwSettings.get("charms.madAdd"), SwSettings.get("charms.maxTotal"))
+  end
+
+  return 0
+end
+
 -- Returns the allowed slots for changes
 local function getAllowedSlots(player)
   -- Start with a list of the slots we can use
@@ -126,21 +183,24 @@ local function getAllowedSlots(player)
   -- Now let's run down through those slots.
   for slot in pairs(allowedSlots) do
     -- We'll do some special handling for misc/holster
-    if slot == "misc" or slot == "holster" then
+    if slot == "holster" then
       goto nextSlot
     end
 
     -- If the slot is cursed and not unlocked, we'll move on
-    if Inventory.isCursedSlot(player, slot) then
+    if Inventory.isCursedSlot(player, slot) and not unlockedSlots[slot] then
       goto nextSlot
     end
 
     -- Now get subslots
     local cap
-    if (SwSettings.get("slots.reduce")) then
-      cap = math.max(Inventory.getSlotCapacity(), SwSettings.get("slots.capacity"))
+
+    if slot == "misc" then
+      cap = getCharmCount(player)
+    elseif (SwSettings.get("slots.reduce")) and slot ~= "misc" then
+      cap = math.max(Inventory.getSlotCapacity(player, slot), SwSettings.get("slots.capacity"))
     else
-      cap = NixLib.median(Inventory.getSlotCapacity(), SwSettings.get("slots.capacity"), #Inventory)
+      cap = NixLib.median(Inventory.getSlotCapacity(player, slot), SwSettings.get("slots.capacity"), #Inventory)
     end
 
     -- Get the filled subslots first
@@ -149,11 +209,30 @@ local function getAllowedSlots(player)
 
     for i, item in ipairs(items) do
       index = i
+
+      -- Is this an item we can remove?
+      local sng = item.Switcheroo_noGive
+      if sng and not (sng.unlessGiven and sng.wasGiven) then
+        goto nextSubslot
+      end
+
+      if not unlockedSlots[slot] then
+        if ItemBan.isBanned(player, item, ItemBan.Flag.LOSS_DROP) then
+          goto nextSubslot
+        end
+      end
+
       out[#out + 1] = {
         slotName = slot,
         index = index,
         contents = item
       }
+
+      if i > cap then
+        out[#out].remove = true
+      end
+
+      ::nextSubslot::
     end
 
     -- Now the empty subslots
@@ -166,8 +245,19 @@ local function getAllowedSlots(player)
       end
     end
 
+    if allowedSlots.holster then
+      -- Get hud item
+      local hudItem = Inventory.getItemInSlot(player, "hud", 1)
+      if hudItem.holster then
+
+      end
+    end
+
     ::nextSlot::
   end
+
+  -- Now handle the charms
+  local charmCount = getCharmCount(player)
 end
 
 --#endregion (Functions)
