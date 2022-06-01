@@ -94,6 +94,18 @@ local function slotsToSet(enum, value)
   return ret
 end
 
+-- Returns the RNG channel for a given player. If it doesn't exist yet, makes one.
+local function channel(player)
+  local ent = player.Switcheroo_randomizer.entity
+
+  if ent == nil then
+    ent = Entities.spawn("Switcheroo_RandomChannel")
+    player.Switcheroo_randomizer.entity = ent
+  end
+
+  return ent
+end
+
 -- Returns the allowed slots for changes
 local function getAllowedSlots(player)
   -- Start with a list of the slots we can use

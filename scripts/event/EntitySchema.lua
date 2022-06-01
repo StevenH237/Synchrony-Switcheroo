@@ -89,11 +89,7 @@ Event.entitySchemaGenerate.add("checks", { order = "components", sequence = -1 }
   end
 end)
 
-Event.entitySchemaLoadEntity.add("addComponents", { order = "overrides" }, function(ev)
-  if not ev.entity.item then return end
-
-  local entity = ev.entity
-
+local function addItemComponents(entity)
   -- Should the item be exempt from giving?
   if itemNamesNotGiven[entity.name] then
     entity.Switcheroo_noGive = {}
@@ -143,4 +139,18 @@ Event.entitySchemaLoadEntity.add("addComponents", { order = "overrides" }, funct
   entity.Switcheroo_noTake = false
 
   ::endTake::
+end
+
+local function addPlayerComponents(entity)
+  entity.Switcheroo_randomizer = {}
+end
+
+Event.entitySchemaLoadEntity.add("addComponents", { order = "overrides" }, function(ev)
+  local entity = ev.entity
+
+  if entity.item then
+    addItemComponents(entity)
+  elseif entity.playableCharacter then
+    addPlayerComponents(entity)
+  end
 end)
