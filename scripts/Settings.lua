@@ -94,6 +94,18 @@ end
 
 --#endregion
 
+-------------
+-- FILTERS --
+--#region----
+
+local function itemSlotFilter(slot)
+  return function(ent)
+    return ent.name == "Switcheroo_NoneItem" or (ent.itemSlot and ent.itemSlot.name == slot)
+  end
+end
+
+--#endregion
+
 --------------
 -- SETTINGS --
 --#region-----
@@ -738,9 +750,7 @@ Defaults_Action = PowerSettings.shared.entity {
   id = "defaults.action",
   order = 0,
   visibleIf = function() return get("advanced") end,
-  filter = function(ent)
-    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "action"
-  end,
+  filter = itemSlotFilter("action"),
   default = "Switcheroo_NoneItem"
 }
 
@@ -750,9 +760,7 @@ Defaults_Shovel = PowerSettings.shared.entity {
   id = "defaults.shovel",
   order = 1,
   visibleIf = function() return get("advanced") end,
-  filter = function(ent)
-    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "shovel"
-  end,
+  filter = itemSlotFilter("shovel"),
   default = "ShovelBasic"
 }
 
@@ -762,9 +770,7 @@ Defaults_Weapon = PowerSettings.shared.entity {
   id = "defaults.weapon",
   order = 2,
   visibleIf = function() return get("advanced") end,
-  filter = function(ent)
-    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "weapon"
-  end,
+  filter = itemSlotFilter("weapon"),
   default = "WeaponDagger"
 }
 
@@ -774,9 +780,7 @@ Defaults_Body = PowerSettings.shared.entity {
   id = "defaults.body",
   order = 3,
   visibleIf = function() return get("advanced") end,
-  filter = function(ent)
-    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "body"
-  end,
+  filter = itemSlotFilter("body"),
   default = "Switcheroo_NoneItem"
 }
 
@@ -786,9 +790,7 @@ Defaults_Head = PowerSettings.shared.entity {
   id = "defaults.head",
   order = 3,
   visibleIf = function() return get("advanced") end,
-  filter = function(ent)
-    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "head"
-  end,
+  filter = itemSlotFilter("head"),
   default = "Switcheroo_NoneItem"
 }
 
@@ -798,9 +800,7 @@ Defaults_Feet = PowerSettings.shared.entity {
   id = "defaults.feet",
   order = 3,
   visibleIf = function() return get("advanced") end,
-  filter = function(ent)
-    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "feet"
-  end,
+  filter = itemSlotFilter("feet"),
   default = "Switcheroo_NoneItem"
 }
 
@@ -810,9 +810,7 @@ Defaults_Ring = PowerSettings.shared.entity {
   id = "defaults.ring",
   order = 3,
   visibleIf = function() return get("advanced") end,
-  filter = function(ent)
-    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "ring"
-  end,
+  filter = itemSlotFilter("ring"),
   default = "Switcheroo_NoneItem"
 }
 
@@ -822,9 +820,7 @@ Defaults_Spell = PowerSettings.shared.entity {
   id = "defaults.spell",
   order = 3,
   visibleIf = function() return get("advanced") end,
-  filter = function(ent)
-    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "spell"
-  end,
+  filter = itemSlotFilter("spell"),
   default = "Switcheroo_NoneItem"
 }
 
