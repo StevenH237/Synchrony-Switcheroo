@@ -500,7 +500,7 @@ local function changeItemsInSlots(player, slots)
       end
 
       -- Now delete old item.
-      Object.delete(oldItem.id)
+      Object.delete(oldItem)
     end
 
     -- Now, if we're giving a new item, actually give it to them.
