@@ -432,7 +432,6 @@ end
 local function generateItem(player, slot)
   local choiceOpts = {
     -- banMask = see below,
-    -- itemPool = TODO add support for this,
     -- default = see below,
     channel = channel(player),
     slot = slot,
@@ -515,11 +514,12 @@ local function changeItemsInSlots(player, slots)
     end
 
     -- Now, if we're giving a new item, actually give it to them.
+    local newEntity
     if newItem then
       if newItemType then
-        Inventory.grant(newItemType, player)
+        newEntity = Inventory.grant(newItemType, player)
       else
-        Inventory.grant(generateItem(player, slot.slotName), player)
+        newEntity = Inventory.grant(generateItem(player, slot.slotName), player)
       end
       min = min - 1
       max = max - 1
@@ -527,8 +527,12 @@ local function changeItemsInSlots(player, slots)
       -- Is there a default for the slot?
       local default = SwSettings.get("defaults." .. slot)
       if default ~= "Switcheroo_NoneItem" then
-        Inventory.grant(default, player)
+        newEntity = Inventory.grant(default, player)
       end
+    end
+
+    if newEntity and newEntity.Switcheroo_noTake then
+      newEntity.Switcheroo_noTake.wasGiven = true
     end
   end
 end
