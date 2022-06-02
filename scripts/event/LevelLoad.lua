@@ -248,16 +248,28 @@ local function getAllowedSlots(player)
     if allowedSlots.holster then
       -- Get hud item
       local hudItem = Inventory.getItemInSlot(player, "hud", 1)
-      if hudItem.holster then
-
+      if hudItem.itemHolster then
+        local content = hudItem.itemHolster.content
+        if content == nil then
+          out[#out + 1] = {
+            slotName = "holster",
+            container = hudItem
+          }
+        else
+          local heldItem = Entities.getEntityByID(content)
+          out[#out + 1] = {
+            slotName = "holster",
+            container = hudItem,
+            contents = heldItem
+          }
+        end
       end
     end
 
     ::nextSlot::
   end
 
-  -- Now handle the charms
-  local charmCount = getCharmCount(player)
+  return out
 end
 
 --#endregion (Functions)
