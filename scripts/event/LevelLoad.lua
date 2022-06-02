@@ -437,7 +437,6 @@ local function generateItem(player, slot)
     channel = channel(player),
     slot = slot,
     excludedComponents = { "Switcheroo_noGive" },
-    chanceType = SwEnum.Generators.names[SwSettings.get("generator")]:lower(),
     depletionLimit = math.huge
   }
 
@@ -453,12 +452,24 @@ local function generateItem(player, slot)
     choiceOpts.banMask = bit.bor(choiceOpts.banMask, ItemBan.Flag.PICKUP_DEATH)
   end
 
-  -- And do we have a default?
-  if SwSettings.get("defaults." .. slot) ~= "Switcheroo_NoneItem" then
-    choiceOpts.default = SwSettings.get("defaults." .. slot)
+  -- Loop through all allowed item pools
+  local pools = SwSettings.get("generators")
+
+  for i, v in ipairs(pools) do
+    choiceOpts.itemPool = v
+    local item = ItemGeneration.choice(choiceOpts)
+    if item ~= nil then
+      return item
+    end
   end
 
-  return ItemGeneration.choice(choiceOpts)
+  -- And do we have a default?
+  local default = SwSettings.get("defaults." .. slot)
+  if default ~= "Switcheroo_NoneItem" then
+    return default
+  end
+
+  return nil
 end
 
 -- This function actually (clears, if necessary, and re)stocks selected slots.

@@ -23,6 +23,20 @@ end
 
 --#endregion
 
+--------------
+-- ENABLERS --
+--#region-----
+
+local function isAdvanced()
+  return SettingsStorage.get("config.showAdvanced")
+end
+
+local function isAmplified()
+  return GameDLC.isAmplifiedLoaded()
+end
+
+--#endregion Enablers
+
 ----------------
 -- FORMATTERS --
 --#region-------
@@ -67,21 +81,38 @@ local function diceDropFormat(value)
   end
 end
 
+local itemPoolNames = {
+  itemPoolChest       = "Chest",
+  itemPoolRedChest    = "Red boss chest",
+  itemPoolPurpleChest = "Purple boss chest",
+  itemPoolBlackChest  = "Black boss chest",
+  itemPoolLockedChest = "Locked chest",
+  itemPoolShop        = "Shop",
+  itemPoolLockedShop  = "Locked shop",
+  itemPoolUrn         = "Urn",
+  itemPoolSecret      = "Conjurer",
+  itemPoolFood        = "Food",
+  itemPoolHearts      = "Hearts",
+  itemPoolCrate       = "Crate",
+  itemPoolWar         = "Shrine of War",
+  itemPoolUncertainty = "Shrine of Uncertainty",
+  itemPoolEnchant     = "Enchant weapon scroll",
+  itemPoolNeed        = "Need scroll"
+}
+
+local function itemPoolFormat(value)
+  if itemPoolNames[value] then
+    if isAdvanced() then
+      return itemPoolNames[value] .. " (" .. value .. ")"
+    else
+      return itemPoolNames[value]
+    end
+  else
+    return value
+  end
+end
+
 --#endregion
-
---------------
--- ENABLERS --
---#region-----
-
-local function isAdvanced()
-  return SettingsStorage.get("config.showAdvanced")
-end
-
-local function isAmplified()
-  return GameDLC.isAmplifiedLoaded()
-end
-
---#endregion Enablers
 
 -------------
 -- ACTIONS --
@@ -102,6 +133,15 @@ local function itemSlotFilter(slot)
   return function(ent)
     return ent.name == "Switcheroo_NoneItem" or (ent.itemSlot and ent.itemSlot.name == slot)
   end
+end
+
+local function itemPoolComponentFilter(comp)
+  for i, v in ipairs(comp.fields) do
+    if v.name == "weights" and v.type == "table" then
+      return true
+    end
+  end
+  return false
 end
 
 --#endregion
@@ -838,14 +878,16 @@ Defaults_Holster = PowerSettings.shared.entity {
 
 --#endregion Default items
 
-Generator = PowerSettings.shared.enum {
-  name = "Generator type",
-  desc = "Which generator should be used for the mod?",
-  id = "generator",
+Generators = PowerSettings.shared.list.component {
+  name = "Generator types",
+  desc = "Which generator(s) should be used for the mod?",
+  id = "generators",
   order = 11,
   visibleIf = function() return get("advanced") end,
-  enum = SwEnum.Generators,
-  default = SwEnum.Generators.CONJURER
+  default = { "itemPoolSecret" },
+  itemDefault = "itemPoolSecret",
+  filter = itemPoolComponentFilter,
+  itemFormat = itemPoolFormat
 }
 
 --#endregion Advanced
