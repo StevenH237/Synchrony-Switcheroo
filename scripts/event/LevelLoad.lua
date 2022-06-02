@@ -299,7 +299,7 @@ local function getAllowedSlots(player)
   if allowedSlots.holster then
     -- Get hud item
     local hudItem = Inventory.getItemInSlot(player, "hud", 1)
-    if hudItem.itemHolster then
+    if hudItem and hudItem.itemHolster then
       local content = hudItem.itemHolster.content
       if content == nil then
         outEmpty[#outEmpty + 1] = {
