@@ -247,7 +247,7 @@ local function getAllowedSlots(player)
     if slot == "misc" then
       cap = getCharmCount(player)
     elseif (SwSettings.get("slots.reduce")) and slot ~= "misc" then
-      cap = math.max(Inventory.getSlotCapacity(player, slot), SwSettings.get("slots.capacity"))
+      cap = math.min(Inventory.getSlotCapacity(player, slot), SwSettings.get("slots.capacity"))
     else
       cap = NixLib.median(Inventory.getSlotCapacity(player, slot), SwSettings.get("slots.capacity"), #Inventory)
     end
