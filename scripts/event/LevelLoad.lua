@@ -493,7 +493,7 @@ local function changeItemsInSlots(player, slots)
     -- (and if we're honoring that).
     local oldItem = slot.contents
     local newItemType = nil
-    if newItem and oldItem.itemTransmutableFixedOutcome and SwSettings.get("guarantees") then
+    if newItem and oldItem and oldItem.itemTransmutableFixedOutcome and SwSettings.get("guarantees") then
       newItemType = oldItem.itemTransmutableFixedOutcome.target
     end
 
