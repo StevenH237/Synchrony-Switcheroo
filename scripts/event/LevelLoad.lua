@@ -493,12 +493,14 @@ local function changeItemsInSlots(player, slots)
     -- (and if we're honoring that).
     local oldItem = slot.contents
     local newItemType = nil
-    if newItem and oldItem and oldItem.itemTransmutableFixedOutcome and SwSettings.get("guarantees") then
-      newItemType = oldItem.itemTransmutableFixedOutcome.target
-    end
+    if oldItem then
+      if newItem and oldItem.itemTransmutableFixedOutcome and SwSettings.get("guarantees") then
+        newItemType = oldItem.itemTransmutableFixedOutcome.target
+      end
 
-    -- Now delete old item.
-    Entities.despawn(oldItem.id)
+      -- Now delete old item.
+      Entities.despawn(oldItem.id)
+    end
 
     -- Now, if we're giving a new item, actually give it to them.
     if newItem then
