@@ -507,7 +507,7 @@ local function changeItemsInSlots(player, slots)
       if newItemType then
         Inventory.grant(newItemType, player)
       else
-        Inventory.grant(generateItem(player, slot), player)
+        Inventory.grant(generateItem(player, slot.slotName), player)
       end
       min = min - 1
       max = max - 1
