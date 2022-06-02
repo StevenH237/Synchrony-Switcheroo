@@ -260,8 +260,8 @@ local function getAllowedSlots(player)
       index = i
 
       -- Is this an item we can remove?
-      local sng = item.Switcheroo_noGive
-      if sng and not (sng.unlessGiven and sng.wasGiven) then
+      local snt = item.Switcheroo_noTake
+      if snt and not (snt.unlessGiven and snt.wasGiven) then
         goto nextSubslot
       end
 
