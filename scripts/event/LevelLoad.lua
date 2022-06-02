@@ -5,6 +5,7 @@ local GameSession    = require "necro.client.GameSession"
 local Inventory      = require "necro.game.item.Inventory"
 local ItemBan        = require "necro.game.item.ItemBan"
 local ItemGeneration = require "necro.game.item.ItemGeneration"
+local Object         = require "necro.game.object.Object"
 local Player         = require "necro.game.character.Player"
 local RNG            = require "necro.game.system.RNG"
 local Snapshot       = require "necro.game.system.Snapshot"
@@ -501,7 +502,7 @@ local function changeItemsInSlots(player, slots)
       end
 
       -- Now delete old item.
-      Entities.despawn(oldItem.id)
+      Object.delete(oldItem.id)
     end
 
     -- Now, if we're giving a new item, actually give it to them.
