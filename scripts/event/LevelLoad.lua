@@ -217,6 +217,8 @@ local function getAllowedSlots(player)
   local oneTimeSlotsVal = SwSettings.get("slots.once")
   local unlockedSlotsVal = SwSettings.get("slots.unlocked")
 
+  print(allowedSlotsVal)
+
   if not firstGen then
     allowedSlotsVal = bit.band(allowedSlotsVal, bit.bnot(oneTimeSlotsVal))
     unlockedSlotsVal = bit.band(unlockedSlotsVal, bit.bnot(oneTimeSlotsVal))
