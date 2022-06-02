@@ -43,8 +43,8 @@ local function itemBanFormat(value)
   end
 end
 
-local function maxSlotsFormat(value)
-  if value == 20 then
+local function maxItemsSlotsFormat(value)
+  if value == -1 then
     return "(No limit)"
   else
     return value
@@ -163,10 +163,7 @@ Replacement_AdvancedEmptyMinSlots = PowerSettings.shared.number {
   order = 2,
   visibleIf = function() return get("replacement.advanced") end,
   default = 0,
-  minimum = 0,
-  upperBound = function()
-    return get("replacement.advancedMaxSlots") - get("replacement.advancedFullMinSlots")
-  end
+  minimum = 0
 }
 
 Replacement_AdvancedFullSelectChance = PowerSettings.shared.percent {
@@ -198,10 +195,7 @@ Replacement_AdvancedFullMinSlots = PowerSettings.shared.number {
   order = 5,
   visibleIf = function() return get("replacement.advanced") end,
   default = 0,
-  minimum = 0,
-  upperBound = function()
-    return get("replacement.advancedMaxSlots") - get("replacement.advancedEmptyMinSlots")
-  end
+  minimum = 0
 }
 
 Replacement_AdvancedMinSlots = PowerSettings.shared.number {
@@ -211,8 +205,7 @@ Replacement_AdvancedMinSlots = PowerSettings.shared.number {
   order = 6,
   visibleIf = function() return get("replacement.advanced") end,
   default = 0,
-  minimum = 0,
-  upperBound = "replacement.advancedMaxSlots"
+  minimum = 0
 }
 
 Replacement_AdvancedMaxSlots = PowerSettings.shared.number {
@@ -221,11 +214,28 @@ Replacement_AdvancedMaxSlots = PowerSettings.shared.number {
   id = "replacement.advancedMaxSlots",
   order = 7,
   visibleIf = function() return get("replacement.advanced") end,
-  default = 20,
-  lowerBound = function()
-    return math.max(get("replacement.advancedFullMinSlots") + get("replacement.advancedEmptyMinSlots"), get("replacement.advancedMinSlots"), 1)
-  end,
-  format = maxSlotsFormat
+  default = -1,
+  format = maxItemsSlotsFormat
+}
+
+Replacement_AdvancedMinItems = PowerSettings.shared.number {
+  name = "Minimum items given",
+  desc = "The number of items that must be given, if that many slots are picked.",
+  id = "replacement.advancedMinItems",
+  order = 8,
+  visibleIf = function() return get("replacement.advanced") end,
+  default = 0,
+  minimum = 0
+}
+
+Replacement_AdvancedMaxItems = PowerSettings.shared.number {
+  name = "Maximum items given",
+  desc = "The highest number of items that must be given.",
+  id = "replacement.advancedMaxItems",
+  order = 9,
+  visibleIf = function() return get("replacement.advanced") end,
+  default = -1,
+  format = maxItemsSlotsFormat
 }
 
 --#endregion Replacement settings (advanced)
@@ -712,11 +722,131 @@ Charms_DiceAddPerFloor = PowerSettings.shared.number {
 
 --#endregion Charms settings
 
+Defaults = PowerSettings.group {
+  name = "Defaults",
+  desc = "Default items if generation fails or item is deleted",
+  id = "defaults",
+  order = 10,
+  visibleIf = function() return get("advanced") end
+}
+
+--#region Default items
+
+Defaults_Action = PowerSettings.shared.entity {
+  name = "Consumable item",
+  desc = "Default item for consumable slot",
+  id = "defaults.action",
+  order = 0,
+  visibleIf = function() return get("advanced") end,
+  filter = function(ent)
+    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "action"
+  end,
+  default = "Switcheroo_NoneItem"
+}
+
+Defaults_Shovel = PowerSettings.shared.entity {
+  name = "Shovel",
+  desc = "Default item for shovel slot",
+  id = "defaults.shovel",
+  order = 1,
+  visibleIf = function() return get("advanced") end,
+  filter = function(ent)
+    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "shovel"
+  end,
+  default = "ShovelBasic"
+}
+
+Defaults_Weapon = PowerSettings.shared.entity {
+  name = "Weapon",
+  desc = "Default item for weapon slot",
+  id = "defaults.weapon",
+  order = 2,
+  visibleIf = function() return get("advanced") end,
+  filter = function(ent)
+    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "weapon"
+  end,
+  default = "WeaponDagger"
+}
+
+Defaults_Body = PowerSettings.shared.entity {
+  name = "Body",
+  desc = "Default item for body slot",
+  id = "defaults.body",
+  order = 3,
+  visibleIf = function() return get("advanced") end,
+  filter = function(ent)
+    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "body"
+  end,
+  default = "Switcheroo_NoneItem"
+}
+
+Defaults_Head = PowerSettings.shared.entity {
+  name = "Head",
+  desc = "Default item for head slot",
+  id = "defaults.head",
+  order = 3,
+  visibleIf = function() return get("advanced") end,
+  filter = function(ent)
+    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "head"
+  end,
+  default = "Switcheroo_NoneItem"
+}
+
+Defaults_Feet = PowerSettings.shared.entity {
+  name = "Feet",
+  desc = "Default item for feet slot",
+  id = "defaults.feet",
+  order = 3,
+  visibleIf = function() return get("advanced") end,
+  filter = function(ent)
+    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "feet"
+  end,
+  default = "Switcheroo_NoneItem"
+}
+
+Defaults_Ring = PowerSettings.shared.entity {
+  name = "Ring",
+  desc = "Default item for ring slot",
+  id = "defaults.ring",
+  order = 3,
+  visibleIf = function() return get("advanced") end,
+  filter = function(ent)
+    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "ring"
+  end,
+  default = "Switcheroo_NoneItem"
+}
+
+Defaults_Spell = PowerSettings.shared.entity {
+  name = "Spell",
+  desc = "Default item for spell slots",
+  id = "defaults.spell",
+  order = 3,
+  visibleIf = function() return get("advanced") end,
+  filter = function(ent)
+    return ent.name == "Switcheroo_NoneItem" or ent.itemSlot.name == "spell"
+  end,
+  default = "Switcheroo_NoneItem"
+}
+
+Defaults_Holster = PowerSettings.shared.entity {
+  name = "Holster",
+  desc = "Default item for holsters",
+  id = "defaults.holster",
+  order = 3,
+  visibleIf = function() return get("advanced") end,
+  filter = function(ent)
+    return ent.name == "Switcheroo_NoneItem" or ent.item
+  end,
+  default = "Switcheroo_NoneItem"
+}
+
+--#endregion Default items
+
 Generator = PowerSettings.shared.enum {
   name = "Generator type",
   desc = "Which generator should be used for the mod?",
   id = "generator",
-  order = 10,
+  order = 11,
   visibleIf = function() return get("advanced") end,
   enum = SwEnum.Generators,
   default = SwEnum.Generators.CONJURER

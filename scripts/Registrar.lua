@@ -16,3 +16,7 @@ CustomEntities.register {
   name = "Switcheroo_RandomChannel",
   random = {}
 }
+
+CustomEntities.register {
+  name = "Switcheroo_NoneItem"
+}
