@@ -184,11 +184,11 @@ local function getCharmCount(player)
     local drop = SwSettings.get("charms.diceDrop")
     local dropHigh = drop > 0
     if dropHigh then
-      for i = 1, dropHigh do
+      for i = 1, drop do
         table.remove(rolled)
       end
     else
-      for i = -dropHigh, -1 do
+      for i = -drop, -1 do
         table.remove(rolled, 1)
       end
     end
