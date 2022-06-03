@@ -83,19 +83,6 @@ do
     CRATE_POOL  = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_CRATE,
     SHRINE_POOL = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_SHRINE_POOL + ItemBan.Flag.GENERATE_TRANSACTION
   }
-
-  module.Generators = Enum.sequence {
-    UNWEIGHTED   = entry(0, "Unweighted", { bans = BanCombos.ITEM_POOL }),
-    CHEST        = entry(1, "Chest", { bans = BanCombos.ITEM_POOL }),
-    LOCKED_CHEST = entry(2, "Locked chest", { bans = BanCombos.ITEM_POOL }),
-    SHOP         = entry(3, "Shop", { bans = BanCombos.ITEM_POOL }),
-    LOCKED_SHOP  = entry(4, "Locked shop", { bans = BanCombos.ITEM_POOL }),
-    URN          = entry(5, "Urn", { bans = BanCombos.CRATE_POOL }),
-    RED_CHEST    = entry(6, "Red chest", { bans = BanCombos.ITEM_POOL }),
-    PURPLE_CHEST = entry(7, "Purple chest", { bans = BanCombos.ITEM_POOL }),
-    BLACK_CHEST  = entry(8, "Black chest", { bans = BanCombos.ITEM_POOL }),
-    CONJURER     = entry(9, "Conjurer", { bans = BanCombos.SHRINE_POOL })
-  }
 end
 
 module.CharmsAlgorithm = Enum.sequence {

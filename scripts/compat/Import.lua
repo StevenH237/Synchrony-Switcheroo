@@ -1,4 +1,5 @@
 local Enum            = require "system.utils.Enum"
+local RemoteSettings  = require "necro.config.RemoteSettings"
 local Settings        = require "necro.config.Settings"
 local SettingsStorage = require "necro.config.SettingsStorage"
 
@@ -6,8 +7,22 @@ local SwEnum = require "Switcheroo.Enum"
 
 local NixLib = require "NixLib.NixLib"
 
+local imported = {}
+
+local function importSettings()
+  local serialized = SettingsStorage.getSerializedSettings(Settings.Layer.REMOTE_OVERRIDE)
+  imported = {}
+  for k, v in pairs(serialized) do
+    if string.len(k) >= 15 and string.sub(k, 1, 15) == "mod.Switcheroo." then
+      imported[k] = v
+    end
+  end
+end
+
 local function getSetting(name)
-  return SettingsStorage.get("mod.Switcheroo." .. name, Settings.Layer.REMOTE_PENDING)
+  local settingName = "mod.Switcheroo." .. name
+  local settingValue = imported[settingName]
+  return settingValue
 end
 
 local function setSetting(name, value)
@@ -21,16 +36,16 @@ local function clearSettings(prefix, settings)
 end
 
 local enumGenType = Enum.sequence {
-  UNWEIGHTED = 0,
-  CHEST = 1,
-  LOCKED_CHEST = 2,
-  SHOP = 3,
-  LOCKED_SHOP = 4,
-  URN = 5,
-  RED_CHEST = 6,
-  PURPLE_CHEST = 7,
-  BLACK_CHEST = 8,
-  CONJURER = 9
+  UNWEIGHTED   = Enum.entry(0, {}),
+  CHEST        = Enum.entry(1, { flag = "itemPoolChest" }),
+  LOCKED_CHEST = Enum.entry(2, { flag = "itemPoolLockedChest" }),
+  SHOP         = Enum.entry(3, { flag = "itemPoolShop" }),
+  LOCKED_SHOP  = Enum.entry(4, { flag = "itemPoolLockedShop" }),
+  URN          = Enum.entry(5, { flag = "itemPoolUrn" }),
+  RED_CHEST    = Enum.entry(6, { flag = "itemPoolRedChest" }),
+  PURPLE_CHEST = Enum.entry(7, { flag = "itemPoolPurpleChest" }),
+  BLACK_CHEST  = Enum.entry(8, { flag = "itemPoolBlackChest" }),
+  CONJURER     = Enum.entry(9, { flag = "itemPoolSecret" })
 }
 
 local enumSlotType = Enum.sequence {
@@ -45,6 +60,65 @@ local enumSlotType = Enum.sequence {
 local module = {}
 
 function module.ImportV1Settings()
+  importSettings()
+
+  -- Clear all new settings first, just to be sure
+  clearSettings("", {
+    "advanced",
+    "allowedFloors",
+    "charms.algorithm",
+    "charms.diceAddPerFloor",
+    "charms.diceAddStatic",
+    "charms.diceCount",
+    "charms.diceDrop",
+    "charms.diceMultiplierPerFloor",
+    "charms.diceSides",
+    "charms.maxAdd",
+    "charms.maxTotal",
+    "dontGive.advanced",
+    "dontGive.bannedItems",
+    "dontGive.components",
+    "dontGive.damageUps",
+    "dontGive.deadlyItems",
+    "dontGive.goldItems",
+    "dontGive.items",
+    "dontGive.magicFood",
+    "dontGive.moveAmplifiers",
+    "dontGive.visionReducers",
+    "dontTake.advanced",
+    "dontTake.alwaysLabel",
+    "dontTake.componentsUnlessGiven",
+    "dontTake.components",
+    "dontTake.crownOfGreed",
+    "dontTake.items",
+    "dontTake.itemsUnlessGiven",
+    "dontTake.locked",
+    "dontTake.luckyCharm",
+    "dontTake.potion",
+    "dontTake.ringOfWonder",
+    "dontTake.unlessGivenLabel",
+    "generator",
+    -- "guarantees", -- This is skipped because it's the same name in both versions.
+    "replacement.advanced",
+    "replacement.advancedEmptyChance",
+    "replacement.advancedEmptyMinSlots",
+    "replacement.advancedFullMinSlots",
+    "replacement.advancedFullReplaceChance",
+    "replacement.advancedFullSelectChance",
+    "replacement.advancedMaxItems",
+    "replacement.advancedMaxSlots",
+    "replacement.advancedMinItems",
+    "replacement.advancedMinSlots",
+    "replacement.simpleChance",
+    "replacement.simpleMode",
+    "sellItems",
+    "slots.allowed",
+    "slots.capacity",
+    "slots.oneTime",
+    "slots.reduce",
+    "slots.unlocked"
+  })
+
   -- Import "chance" group first
   local chanceEmpty = getSetting("chance.empty") or 1
   local chanceFilled = getSetting("chance.filled") or 1
@@ -74,33 +148,29 @@ function module.ImportV1Settings()
       setSetting("replacement.simpleChance", chanceEmpty)
     end
   else
-    clearSettings("replacement.", { "simpleMode", "simpleChance", "advancedEmptyMinSlots", "advancedFullMinSlots" })
-
     setSetting("replacement.advanced", true)
     -- Because of changes to how empty slot filling works, the multiplication here mimics the old behavior.
     setSetting("replacement.advancedEmptyChance", chanceEmpty * chanceNew)
     setSetting("replacement.advancedFullSelectChance", chanceFilled)
     setSetting("replacement.advancedFullReplaceChance", chanceNew)
-    setSetting("replacement.advancedMinSlots", math.min(chanceMin, 20))
-    setSetting("replacement.advancedMaxSlots", math.min(chanceMax, 20))
+    setSetting("replacement.advancedMinItems", 0)
+    setSetting("replacement.advancedMinSlots", chanceMin)
+    setSetting("replacement.advancedMaxItems", -1)
+    setSetting("replacement.advancedMaxSlots", chanceMax)
   end
 
   -- Import "charms" group next
-  -- We'll set "other.advanced" false before anything that would set it true
-  setSetting("other.advanced", nil)
+  setSetting("advanced", true)
 
-  local charmsMax = getSetting("charms.max")
-  local charmsAdd = getSetting("charms.new")
+  local charmsMax = getSetting("charms.max") or 5
+  local charmsAdd = getSetting("charms.new") or 1
 
-  if charmsMax or charmsAdd then
-    setSetting("other.advanced", true)
-    setSetting("other.charms.maxTotal", charmsMax)
-    setSetting("other.charms.maxAdd", charmsAdd)
-  end
+  setSetting("charms.algorithm", SwEnum.CharmsAlgorithm.ADD_ONE)
+  setSetting("charms.maxTotal", charmsMax)
+  setSetting("charms.maxAdd", charmsAdd)
 
   -- Import "components" group next
   -- First, clear the existing (new version) no-give stuff
-  clearSettings("dontGive.", { "advanced", "bannedItems", "components", "goldItems", "items", "magicFood" })
   setSetting("dontGive.damageUps", false)
   setSetting("dontGive.magicFood", false)
   setSetting("dontGive.moveAmplifiers", false)
@@ -109,7 +179,7 @@ function module.ImportV1Settings()
   local itemsNoGive = NixLib.splitToList(getSetting("components.giveItem") or "")
   local itemsNotGiven = {}
 
-  for i, v in itemsNoGive do
+  for i, v in ipairs(itemsNoGive) do
     setSetting("dontGive.advanced", true)
     itemsNotGiven[#itemsNotGiven + 1] = v
   end
@@ -120,7 +190,7 @@ function module.ImportV1Settings()
   local componentsNoGive = NixLib.splitToList(getSetting("components.giveComponent") or "itemIncomingDamageIncrease itemBanInnateSpell")
   local componentsNotGiven = {}
 
-  for i, v in componentsNoGive do
+  for i, v in ipairs(componentsNoGive) do
     if v == "Switcheroo_noGive"
         -- haha, think you're clever? :P
         -- we'll just ignore that one
@@ -155,7 +225,7 @@ function module.ImportV1Settings()
   local itemsNoTake = NixLib.splitToList(getSetting("components.takeItem") or "MiscPotion CharmLuck RingWonder HeadCrownOfGreed")
   local itemsNotTaken = {}
 
-  for i, v in itemsNoTake do
+  for i, v in ipairs(itemsNoTake) do
     if v == "HeadCrownOfGreed" then
       setSetting("dontTake.crownOfGreed", SwEnum.DontTake.DONT_TAKE)
     elseif v == "CharmLuck" then
@@ -178,7 +248,7 @@ function module.ImportV1Settings()
   local componentsNoTake = NixLib.splitToList(getSetting("components.takeComponent") or "itemBanInnateSpell")
   local componentsNotTaken = {}
 
-  for i, v in componentsNoTake do
+  for i, v in ipairs(componentsNoTake) do
     if v == "itemBanInnateSpell" then
       -- Do nothing because of legacy defaults.
     else
@@ -234,15 +304,87 @@ function module.ImportV1Settings()
   local slotMask = 0
   local unlockMask = 0
   local onceMask = 0
-  local useSlotMasks = false
 
   for k, v in pairs(SwEnum.SlotsBitmask) do
-    local val = getSetting("slots." .. k:lower())
+    if k ~= "HOLSTER" then
+      local val = getSetting("slots." .. k:lower())
 
-    if val ~= nil then
+      if val == nil or val ~= enumSlotType.NO then
+        slotMask = slotMask + v
+      end
 
+      if val == enumSlotType.UNLOCKED or val == enumSlotType.UNLOCKED_ONCE_THEN_NO then
+        unlockMask = unlockMask + v
+      end
+
+      if val == enumSlotType.ONCE or val == enumSlotType.UNLOCKED_ONCE_THEN_YES or val == enumSlotType.UNLOCKED_ONCE_THEN_NO then
+        onceMask = onceMask + v
+      end
     end
   end
+
+  setSetting("slots.allowed", slotMask)
+  setSetting("slots.oneTime", onceMask)
+  setSetting("slots.unlocked", unlockMask)
+  setSetting("slots.capacity", 2)
+  setSetting("slots.reduce", false)
+
+  -- Finally, the generator type.
+  local type = getSetting("type") or enumGenType.CONJURER
+  setSetting("generator", enumGenType.data[type])
+
+  -- Let's not forget to delete all the old settings!
+  clearSettings("", {
+    "chance.empty",
+    "chance.filled",
+    "chance.maximum",
+    "chance.minimum",
+    "chance.new",
+    "charms.max",
+    "charms.new",
+    "components.check",
+    "components.giveComponent",
+    "components.giveItem",
+    "components.takeComponent",
+    "components.takeItem",
+    "deadly",
+    "floors.l11",
+    "floors.l12",
+    "floors.l13",
+    "floors.l14",
+    "floors.l21",
+    "floors.l22",
+    "floors.l23",
+    "floors.l24",
+    "floors.l31",
+    "floors.l32",
+    "floors.l33",
+    "floors.l34",
+    "floors.l41",
+    "floors.l42",
+    "floors.l43",
+    "floors.l44",
+    "floors.l51",
+    "floors.l52",
+    "floors.l53",
+    "floors.l54",
+    "floors.l55",
+    -- "guarantees", -- This is skipped because it's the same name in both versions.
+    "sell",
+    "slots.body",
+    "slots.feet",
+    "slots.head",
+    "slots.misc",
+    "slots.ring",
+    "slots.shovel",
+    "slots.spell",
+    "slots.torch",
+    "slots.weapon",
+    "type"
+  })
+
+  -- Nor should we forget to commit everything
+  RemoteSettings.upload()
 end
 
 return module

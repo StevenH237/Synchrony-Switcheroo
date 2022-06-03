@@ -18,5 +18,8 @@ CustomEntities.register {
 }
 
 CustomEntities.register {
-  name = "Switcheroo_NoneItem"
+  name = "Switcheroo_NoneItem",
+  friendlyName = {
+    name = "(None)"
+  }
 }

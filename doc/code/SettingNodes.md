@@ -34,7 +34,7 @@
   * `dontTake.potion`: enum (`SwEnum.DontTake`, default `.TAKE_IF_GIVEN`)
   * `dontTake.ringOfWonder`: enum (`SwEnum.DontTake`, default `.TAKE_IF_GIVEN`)
   * `dontTake.unlessGivenLabel`: label
-* `generator`: enum (`SwEnum.Generators`, default `.CONJURER`)
+* `generators`: enum (`SwEnum.Generators`, default `.CONJURER`)
 * `guarantees`: bool (default `true`)
 * `replacement`: group
   * `replacement.advanced`: bool (default `false`)

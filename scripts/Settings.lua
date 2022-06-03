@@ -6,7 +6,8 @@ local SettingsStorage = require "necro.config.SettingsStorage"
 
 local PowerSettings = require "PowerSettings.PowerSettings"
 
-local SwEnum = require "Switcheroo.Enum"
+local SwEnum   = require "Switcheroo.Enum"
+local SwImport = require "Switcheroo.compat.Import"
 --#endregion Imports
 
 ---------------
@@ -117,11 +118,6 @@ end
 -------------
 -- ACTIONS --
 --#region----
-
-local function setSectionAdvanced(section, target)
-  SettingsStorage.set("mod.Switcheroo." .. section .. ".advanced", target, Settings.Layer.REMOTE_PENDING)
-  Menu.update()
-end
 
 --#endregion
 
@@ -730,6 +726,10 @@ Charms_DiceSidesPerFloor = PowerSettings.shared.number {
   order = 3,
   default = 0,
   step = 0.05,
+  editAsString = true,
+  visibleIf = function()
+    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
+  end
 }
 
 Charms_DiceDrop = PowerSettings.shared.number {
@@ -828,7 +828,7 @@ Defaults_Head = PowerSettings.shared.entity {
   name = "Head",
   desc = "Default item for head slot",
   id = "defaults.head",
-  order = 3,
+  order = 4,
   visibleIf = function() return get("advanced") end,
   filter = itemSlotFilter("head"),
   default = "Switcheroo_NoneItem"
@@ -838,9 +838,19 @@ Defaults_Feet = PowerSettings.shared.entity {
   name = "Feet",
   desc = "Default item for feet slot",
   id = "defaults.feet",
-  order = 3,
+  order = 5,
   visibleIf = function() return get("advanced") end,
   filter = itemSlotFilter("feet"),
+  default = "Switcheroo_NoneItem"
+}
+
+Defaults_Torch = PowerSettings.shared.entity {
+  name = "Torch",
+  desc = "Default item for torch slot",
+  id = "defaults.torch",
+  order = 6,
+  visibleIf = function() return get("advanced") end,
+  filter = itemSlotFilter("torch"),
   default = "Switcheroo_NoneItem"
 }
 
@@ -848,7 +858,7 @@ Defaults_Ring = PowerSettings.shared.entity {
   name = "Ring",
   desc = "Default item for ring slot",
   id = "defaults.ring",
-  order = 3,
+  order = 7,
   visibleIf = function() return get("advanced") end,
   filter = itemSlotFilter("ring"),
   default = "Switcheroo_NoneItem"
@@ -858,7 +868,7 @@ Defaults_Spell = PowerSettings.shared.entity {
   name = "Spell",
   desc = "Default item for spell slots",
   id = "defaults.spell",
-  order = 3,
+  order = 8,
   visibleIf = function() return get("advanced") end,
   filter = itemSlotFilter("spell"),
   default = "Switcheroo_NoneItem"
@@ -868,7 +878,7 @@ Defaults_Holster = PowerSettings.shared.entity {
   name = "Holster",
   desc = "Default item for holsters",
   id = "defaults.holster",
-  order = 3,
+  order = 9,
   visibleIf = function() return get("advanced") end,
   filter = function(ent)
     return ent.name == "Switcheroo_NoneItem" or ent.item
@@ -889,6 +899,78 @@ Generators = PowerSettings.shared.list.component {
   filter = itemPoolComponentFilter,
   itemFormat = itemPoolFormat
 }
+
+Import = PowerSettings.group {
+  name = "Import old settings",
+  desc = "Import settings from v1 of Switcheroo.",
+  id = "import",
+  order = 12
+}
+
+--#region Import menu
+
+Import_Label1 = PowerSettings.shared.label {
+  name = "\3*fffThis menu option will attempt to read settings from an\3r",
+  id = "import.label1",
+  order = 0,
+  large = true
+}
+
+Import_Label2 = PowerSettings.shared.label {
+  name = "\3*fffolder version of Switcheroo. It will overwrite any\3r",
+  id = "import.label2",
+  order = 1,
+  large = true
+}
+
+Import_Label3 = PowerSettings.shared.label {
+  name = "\3*fffsettings you've currently set. After importing, you\3r",
+  id = "import.label3",
+  order = 2,
+  large = true
+}
+
+Import_Label4 = PowerSettings.shared.label {
+  name = "\3*fffshould re-save your preset so that you don't have to\3r",
+  id = "import.label4",
+  order = 3,
+  large = true
+}
+
+Import_Label5 = PowerSettings.shared.label {
+  name = "\3*fffdon't have to import again on future loads. (Switcheroo\3r",
+  id = "import.label5",
+  order = 4,
+  large = true
+}
+
+Import_Label6 = PowerSettings.shared.label {
+  name = "\3*fffcannot do this for you.)\3r",
+  id = "import.label6",
+  order = 5,
+  large = true
+}
+
+Import_Space = PowerSettings.shared.label {
+  name = "",
+  id = "import.space",
+  order = 6,
+  large = true
+}
+
+Import_Confirm = PowerSettings.shared.action {
+  name = "Confirm",
+  desc = "Confirms importing old settings.",
+  id = "import.confirm",
+  order = 10,
+  action = function()
+    Menu.close()
+    Menu.close()
+    SwImport.ImportV1Settings()
+  end
+}
+
+--#endregion Import menu
 
 --#endregion Advanced
 

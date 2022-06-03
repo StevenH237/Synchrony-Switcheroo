@@ -45,7 +45,7 @@ local function mapChanceSettings()
     chances = {
       emptyChance = SwSettings.get("replacement.advancedEmptyChance"),
       emptyMinSlots = SwSettings.get("replacement.advancedEmptyMinSlots"),
-      fullMinSlots = SwSettings.get("replacement.fullMinSlots"),
+      fullMinSlots = SwSettings.get("replacement.advancedFullMinSlots"),
       fullReplaceChance = SwSettings.get("replacement.advancedFullReplaceChance"),
       fullSelectChance = SwSettings.get("replacement.advancedFullSelectChance"),
       maxItems = SwSettings.get("replacement.advancedMaxItems"),
@@ -444,7 +444,7 @@ local function generateItem(player, slot)
   choiceOpts.player = player
 
   if not checkFlags(SwSettings.get("slots.unlocked"), SwEnum.SlotsBitmask[slot:upper()]) then
-    choiceOpts.banMask = SwEnum.Generators.data[SwSettings.get("generator")].bans
+    choiceOpts.banMask = ItemBan.Flag.GENERATE_ITEM_POOL + ItemBan.Flag.GENERATE_TRANSACTION
   end
 
   if SwSettings.get("dontGive.deadlyItems") then
@@ -456,6 +456,14 @@ local function generateItem(player, slot)
 
   for i, v in ipairs(pools) do
     choiceOpts.itemPool = v
+    local item = ItemGeneration.choice(choiceOpts)
+    if item ~= nil then
+      return item
+    end
+  end
+
+  -- Unweighted
+  if #pools == 0 then
     local item = ItemGeneration.choice(choiceOpts)
     if item ~= nil then
       return item
@@ -525,8 +533,8 @@ local function changeItemsInSlots(player, slots)
       max = max - 1
     else
       -- Is there a default for the slot?
-      local default = SwSettings.get("defaults." .. slot)
-      if default ~= "Switcheroo_NoneItem" then
+      local default = SwSettings.get("defaults." .. slot.slotName)
+      if default ~= "Switcheroo_NoneItem" and default ~= nil then
         newEntity = Inventory.grant(default, player)
       end
     end
