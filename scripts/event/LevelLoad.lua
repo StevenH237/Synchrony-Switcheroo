@@ -302,21 +302,26 @@ local function getAllowedSlots(player)
     local hudItem = Inventory.getItemInSlot(player, "hud", 1)
     if hudItem and hudItem.itemHolster then
       local content = hudItem.itemHolster.content
-      if content == nil then
+      if content == 0 then
+        print("Empty holster added")
         outEmpty[#outEmpty + 1] = {
           slotName = "holster",
-          container = hudItem
+          holster = hudItem
         }
       else
+        print("Filled holster added")
+        print("Holster's held entity ID: " .. content)
         -- Is this an item we can remove?
         local heldItem = Entities.getEntityByID(content)
-        local sng = heldItem.Switcheroo_noGive
-        if not (sng and not (sng.unlessGiven and sng.wasGiven)) then
-          outFull[#outFull + 1] = {
-            slotName = "holster",
-            holster = hudItem,
-            contents = heldItem
-          }
+        if heldItem then
+          local sng = heldItem.Switcheroo_noGive
+          if not (sng and not (sng.unlessGiven and sng.wasGiven)) then
+            outFull[#outFull + 1] = {
+              slotName = "holster",
+              holster = hudItem,
+              contents = heldItem
+            }
+          end
         end
       end
     end
@@ -429,7 +434,9 @@ local function selectSlots(player, emptySlots, fullSlots)
 end
 
 -- This function generates a random item for a slot.
-local function generateItem(player, slot)
+local function generateItem(player, slot, isHolster)
+  print("Generating item for " .. slot)
+
   local choiceOpts = {
     -- banMask = see below,
     -- default = see below,
@@ -471,9 +478,11 @@ local function generateItem(player, slot)
   end
 
   -- And do we have a default?
-  local default = SwSettings.get("defaults." .. slot)
-  if default ~= "Switcheroo_NoneItem" then
-    return default
+  if not isHolster then
+    local default = SwSettings.get("defaults." .. slot)
+    if default ~= "Switcheroo_NoneItem" then
+      return default
+    end
   end
 
   return nil
@@ -493,7 +502,10 @@ local function changeItemsInSlots(player, slots)
     local newItem = false
 
     -- Figure out if a new item should be generated.
-    if max == 0 then
+    if slot.remove then
+      -- We specifically indicated we'd be removing an item:
+      newItem = false
+    elseif max == 0 then
       -- We've hit the maximum:
       newItem = false
     elseif min >= (#slots + 1) then
@@ -505,6 +517,20 @@ local function changeItemsInSlots(player, slots)
     else
       -- Otherwise:
       newItem = RNG.roll(chance, rngChan)
+    end
+
+    local holsterSlot = nil
+    local holster = nil
+    -- If we're in a holster, swap it and deal with the original slot.
+    if slot.slotName == "holster" then
+      holsterSlot = slot
+      holster = slot.holster
+      slot = {
+        slotName = holster.itemHolster.slot,
+        index = 1,
+        contents = holsterSlot.contents
+      }
+      Inventory.swapWithHolster(player, holster)
     end
 
     -- Now get rid of the old item.
@@ -541,6 +567,10 @@ local function changeItemsInSlots(player, slots)
 
     if newEntity and newEntity.Switcheroo_noTake then
       newEntity.Switcheroo_noTake.wasGiven = true
+    end
+
+    if holsterSlot then
+      Inventory.swapWithHolster(player, holster)
     end
   end
 end
