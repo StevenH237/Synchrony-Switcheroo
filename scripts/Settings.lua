@@ -158,7 +158,7 @@ Replacement = PowerSettings.group {
 -- Hidden setting controlling advanced mode
 Replacement_Advanced = PowerSettings.shared.bool {
   name = "Use advanced settings",
-  desc = "Use the advanced settings in this section",
+  desc = "Show and use the advanced settings in this section",
   id = "replacement.advanced",
   order = 0,
   default = false,
@@ -392,8 +392,8 @@ DontGive_BannedItems = PowerSettings.entitySchema.bool {
 
 -- Hidden setting controlling advanced mode
 DontGive_Advanced = PowerSettings.entitySchema.bool {
-  name = "Use advanced options",
-  desc = "Show and use advanced options in this section.",
+  name = "Use advanced settings",
+  desc = "Show and use advanced settings in this section.",
   id = "dontGive.advanced",
   order = 7,
   default = false,
@@ -482,8 +482,8 @@ DontTake_Locked = PowerSettings.entitySchema.enum {
 
 -- Hidden setting controlling advanced mode
 DontTake_Advanced = PowerSettings.entitySchema.bool {
-  name = "Use advanced options",
-  desc = "Show and use the advanced options in this section.",
+  name = "Use advanced settings",
+  desc = "Show and use the advanced settings in this section.",
   id = "dontTake.advanced",
   order = 5,
   default = false,
@@ -555,7 +555,7 @@ DontTake_Components = PowerSettings.entitySchema.list.component {
 
 Advanced = PowerSettings.shared.bool {
   name = "Use advanced settings",
-  desc = "Show and use advanced settings in the main section.",
+  desc = "Show and use the advanced settings in the main section.",
   id = "advanced",
   order = 7,
   default = false,
