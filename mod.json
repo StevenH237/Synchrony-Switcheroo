@@ -1,12 +1,12 @@
 {
 	"name": "Switcheroo",
 	"displayName": "Switcheroo",
-	"version": "2.0.0",
+	"version": "3.0.0",
 	"synchronyVersion": "0.54",
 	"description": "Changes your build throughout the run! Inspired by Build Mutator.",
 	"author": "Nixill",
 	"dependencies": {
-		"PowerSettings": "1.1.0"
+		"PowerSettings": "2.0.0"
 	},
 	"api": {
 		"scriptPath": "scripts"

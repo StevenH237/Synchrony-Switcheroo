@@ -368,7 +368,7 @@ DontGive_VisionReducers = PowerSettings.entitySchema.bool {
   desc = "Whether or not items that reduce vision should be banned from the item pool.",
   id = "dontGive.visionReducers",
   order = 4,
-  default = false,
+  default = true,
   format = itemBanFormat
 }
 
