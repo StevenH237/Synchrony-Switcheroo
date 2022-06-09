@@ -63,25 +63,21 @@ do
     RING    = entry(8, "Ring"),
     MISC    = entry(9, "Misc"),
     SPELL   = entry(10, "Spells"),
-    HOLSTER = entry(11, "Holstered weapon")
+    HOLSTER = entry(11, "Holstered weapon"),
+    SHIELD  = entry(12, "Shield")
   }
 
   module.Slots = Enum.sequence(slotTable)
   module.SlotsBitmask = Enum.bitmask(slotTable)
 
   module.SlotPresets = Enum.sequence {
-    ALL_SLOTS       = entry(0x7FF, "All slots"),
-    ALL_BUT_WEAPON  = entry(0x3FB, "All slots except weapons"),
-    ALL_BUT_HOLSTER = entry(0x3FF, "All slots except holster"),
-    NO_SLOTS        = entry(0x000, "No slots")
-  }
-end
-
-do
-  local BanCombos = {
-    ITEM_POOL   = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_ITEM_POOL,
-    CRATE_POOL  = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_CRATE,
-    SHRINE_POOL = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_SHRINE_POOL + ItemBan.Flag.GENERATE_TRANSACTION
+    ALL_SLOTS              = entry(0xFFF, "All slots"),
+    ALL_BUT_WEAPON         = entry(0xBFB, "All slots except weapons"),
+    ALL_BUT_HOLSTER        = entry(0xBFF, "All slots except holster"),
+    ALL_BUT_SHIELD         = entry(0x7FF, "All slots except shield"),
+    ALL_BUT_WEAPON_SHIELD  = entry(0x3FB, "All slots except shield and weapons"),
+    ALL_BUT_HOLSTER_SHIELD = entry(0x3FF, "All slots except shield and holster"),
+    NO_SLOTS               = entry(0x000, "No slots")
   }
 end
 
