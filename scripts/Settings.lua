@@ -900,61 +900,106 @@ Generators = PowerSettings.shared.list.component {
   itemFormat = itemPoolFormat
 }
 
+GeneratorFallback = PowerSettings.shared.bool {
+  name = "Fallback to unweighted generator",
+  desc = "Should the unweighted generator be used if no item pool generates an item?",
+  id = "generatorFallback",
+  order = 12,
+  visibleIf = function() return get("advanced") end,
+  default = true
+}
+
 Import = PowerSettings.group {
   name = "Import old settings",
   desc = "Import settings from v1 of Switcheroo.",
   id = "import",
-  order = 12
+  order = 13
 }
 
 --#region Import menu
 
+Import_Top = PowerSettings.shared.action {
+  name = "(Scroll to bottom)",
+  desc = "Scroll down for more.",
+  order = -1,
+  id = "import.top",
+  action = function() Menu.selectByID("mod.Switcheroo.import.confirm") end
+}
+
 Import_Label1 = PowerSettings.shared.label {
-  name = "\3*fffThis menu option will attempt to read settings from an\3r",
+  name = "This menu option will attempt to read settings from an",
   id = "import.label1",
   order = 0,
   large = true
 }
 
 Import_Label2 = PowerSettings.shared.label {
-  name = "\3*fffolder version of Switcheroo. It will overwrite any\3r",
+  name = "older version of Switcheroo. It will overwrite any",
   id = "import.label2",
   order = 1,
   large = true
 }
 
 Import_Label3 = PowerSettings.shared.label {
-  name = "\3*fffsettings you've currently set. After importing, you\3r",
+  name = "settings you've currently set. After importing, you",
   id = "import.label3",
   order = 2,
   large = true
 }
 
 Import_Label4 = PowerSettings.shared.label {
-  name = "\3*fffshould re-save your preset so that you don't have to\3r",
+  name = "should re-save your preset so that you don't have to",
   id = "import.label4",
   order = 3,
   large = true
 }
 
 Import_Label5 = PowerSettings.shared.label {
-  name = "\3*fffdon't have to import again on future loads. (Switcheroo\3r",
+  name = "don't have to import again on future loads. (Switcheroo",
   id = "import.label5",
   order = 4,
   large = true
 }
 
 Import_Label6 = PowerSettings.shared.label {
-  name = "\3*fffcannot do this for you.)\3r",
+  name = "cannot do this for you.)",
   id = "import.label6",
   order = 5,
+  large = true
+}
+
+Import_Label7 = PowerSettings.shared.label {
+  name = "",
+  id = "import.label7",
+  order = 6,
+  large = true
+}
+
+Import_Label8 = PowerSettings.shared.label {
+  name = "",
+  id = "import.label8",
+  order = 7,
+  large = true
+}
+
+Import_Label9 = PowerSettings.shared.label {
+  name = "",
+  id = "import.label9",
+  order = 8,
+  large = true
+}
+
+Import_Label10 = PowerSettings.shared.label {
+  name = "",
+  id = "import.label10",
+  order = 9,
   large = true
 }
 
 Import_Space = PowerSettings.shared.label {
   name = "",
   id = "import.space",
-  order = 6,
+  order = 10,
   large = true
 }
 
@@ -962,7 +1007,7 @@ Import_Confirm = PowerSettings.shared.action {
   name = "Confirm",
   desc = "Confirms importing old settings.",
   id = "import.confirm",
-  order = 10,
+  order = 11,
   action = function()
     Menu.close()
     Menu.close()

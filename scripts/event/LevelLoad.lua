@@ -433,8 +433,7 @@ local function selectSlots(player, emptySlots, fullSlots)
   return out
 end
 
--- This function generates a random item for a slot.
-local function generateItem(player, slot, isHolster)
+local function getChoiceOpts(player, slot)
   print("Generating item for " .. slot)
 
   local choiceOpts = {
@@ -458,10 +457,16 @@ local function generateItem(player, slot, isHolster)
     choiceOpts.banMask = bit.bor(choiceOpts.banMask, ItemBan.Flag.PICKUP_DEATH)
   end
 
+  return choiceOpts
+end
+
+-- This function generates a random item for a slot.
+local function generateItem(player, slot, isHolster)
   -- Loop through all allowed item pools
   local pools = SwSettings.get("generators")
 
   for i, v in ipairs(pools) do
+    local choiceOpts = getChoiceOpts(player, slot)
     choiceOpts.itemPool = v
     local item = ItemGeneration.choice(choiceOpts)
     if item ~= nil then
@@ -470,7 +475,10 @@ local function generateItem(player, slot, isHolster)
   end
 
   -- Unweighted
-  if #pools == 0 then
+  if SwSettings.get("generatorFallback") then
+    local choiceOpts = getChoiceOpts(player, slot)
+    choiceOpts.itemPool = nil
+    choiceOpts.chanceFunction = function() return 1 end
     local item = ItemGeneration.choice(choiceOpts)
     if item ~= nil then
       return item
