@@ -3,6 +3,7 @@ local GameDLC         = require "necro.game.data.resource.GameDLC"
 local Menu            = require "necro.menu.Menu"
 local Settings        = require "necro.config.Settings"
 local SettingsStorage = require "necro.config.SettingsStorage"
+local StringUtilities = require "system.utils.StringUtilities"
 
 local PowerSettings = require "PowerSettings.PowerSettings"
 
@@ -923,85 +924,28 @@ PowerSettings.group {
 PowerSettings.shared.action {
   name = "(Scroll to bottom)",
   desc = "Scroll down for more.",
-  order = -1,
+  order = 0,
   id = "import.top",
   action = function() Menu.selectByID("mod.Switcheroo.import.confirm") end
 }
 
-PowerSettings.shared.label {
-  name = "This menu option will attempt to read settings from an",
-  id = "import.label1",
-  order = 0,
-  large = true
-}
-
-PowerSettings.shared.label {
-  name = "older version of Switcheroo. It will overwrite any",
-  id = "import.label2",
+PowerSettings.shared.multiLabel {
+  texts = StringUtilities.split(
+    "This menu option will attempt to read settings from an\
+older version of Switcheroo. It will overwrite any\
+settings you've currently set. After importing, you\
+should re-save your preset so that you don't have to\
+import again on future loads. (Switcheroo cannot do this\
+for you.)", "\n"),
+  id = "import.label",
   order = 1,
-  large = true
-}
-
-PowerSettings.shared.label {
-  name = "settings you've currently set. After importing, you",
-  id = "import.label3",
-  order = 2,
-  large = true
-}
-
-PowerSettings.shared.label {
-  name = "should re-save your preset so that you don't have to",
-  id = "import.label4",
-  order = 3,
-  large = true
-}
-
-PowerSettings.shared.label {
-  name = "don't have to import again on future loads. (Switcheroo",
-  id = "import.label5",
-  order = 4,
-  large = true
-}
-
-PowerSettings.shared.label {
-  name = "cannot do this for you.)",
-  id = "import.label6",
-  order = 5,
-  large = true
-}
-
-PowerSettings.shared.label {
-  name = "",
-  id = "import.label7",
-  order = 6,
-  large = true
-}
-
-PowerSettings.shared.label {
-  name = "",
-  id = "import.label8",
-  order = 7,
-  large = true
-}
-
-PowerSettings.shared.label {
-  name = "",
-  id = "import.label9",
-  order = 8,
-  large = true
-}
-
-PowerSettings.shared.label {
-  name = "",
-  id = "import.label10",
-  order = 9,
   large = true
 }
 
 PowerSettings.shared.label {
   name = "",
   id = "import.space",
-  order = 10,
+  order = 2,
   large = true
 }
 
@@ -1009,7 +953,7 @@ PowerSettings.shared.action {
   name = "Confirm",
   desc = "Confirms importing old settings.",
   id = "import.confirm",
-  order = 11,
+  order = 3,
   action = function()
     Menu.close()
     Menu.close()
