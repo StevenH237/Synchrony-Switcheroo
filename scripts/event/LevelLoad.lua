@@ -171,7 +171,8 @@ local function getCharmCount(player)
 
   if algo == SwEnum.CharmsAlgorithm.DICE_BASED then
     local dice = math.floor(SwSettings.get("charms.diceCount") + SwSettings.get("charms.dicePerFloor") * floor)
-    local sides = math.max(math.floor(SwSettings.get("charms.diceSides") + SwSettings.get("charms.diceSidesPerFloor") * floor), 2)
+    local sides = math.max(math.floor(SwSettings.get("charms.diceSides") +
+      SwSettings.get("charms.diceSidesPerFloor") * floor), 2)
     local rolled = {}
     local sum = 0
 
