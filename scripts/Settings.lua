@@ -921,22 +921,25 @@ PowerSettings.group {
 
 --#region Import menu
 
+local importWarning = StringUtilities.split(
+  "This menu option will attempt to read settings from an\
+older version of Switcheroo. It will overwrite any\
+settings you've currently set. After importing, you\
+should re-save your preset so that you don't have to\
+import again on future loads. (Switcheroo cannot do this\
+for you.)", "\n")
+
 PowerSettings.shared.action {
   name = "(Scroll to bottom)",
   desc = "Scroll down for more.",
   order = 0,
   id = "import.top",
-  action = function() Menu.selectByID("mod.Switcheroo.import.confirm") end
+  action = function() Menu.selectByID("mod.Switcheroo.import.confirm") end,
+  visibleIf = #importWarning > 8
 }
 
 PowerSettings.shared.multiLabel {
-  texts = StringUtilities.split(
-    "This menu option will attempt to read settings from an\
-older version of Switcheroo. It will overwrite any\
-settings you've currently set. After importing, you\
-should re-save your preset so that you don't have to\
-import again on future loads. (Switcheroo cannot do this\
-for you.)", "\n"),
+  texts = importWarning,
   id = "import.label",
   order = 1,
   large = true
