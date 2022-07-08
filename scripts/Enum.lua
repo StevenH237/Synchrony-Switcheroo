@@ -1,5 +1,7 @@
-local Enum    = require "system.utils.Enum"
-local ItemBan = require "necro.game.item.ItemBan"
+local Enum      = require "system.utils.Enum"
+local GameDLC   = require "necro.game.data.resource.GameDLC"
+local ItemBan   = require "necro.game.item.ItemBan"
+local Utilities = require "system.utils.Utilities"
 
 local module = {}
 
@@ -63,22 +65,26 @@ do
     RING    = entry(8, "Ring"),
     MISC    = entry(9, "Misc"),
     SPELL   = entry(10, "Spells"),
-    HOLSTER = entry(11, "Holstered weapon"),
-    SHIELD  = entry(12, "Shield")
+    HOLSTER = entry(11, "Holstered weapon")
   }
+
+  local slotPresetsTable = {
+    ALL_SLOTS       = entry(0xFFF, "All slots"),
+    ALL_BUT_WEAPON  = entry(0xBFB, "All slots except weapons"),
+    ALL_BUT_HOLSTER = entry(0xBFF, "All slots except holster"),
+    NO_SLOTS        = entry(0x000, "No slots")
+  }
+
+  if GameDLC.isSynchronyLoaded() then
+    slotTable.SHIELD = entry(12, "Shield")
+    slotPresetsTable.ALL_BUT_SHIELD = entry(0x7FF, "All slots except shield")
+    slotPresetsTable.ALL_BUT_WEAPON_SHIELD = entry(0x3FB, "All slots except shield and weapons")
+    slotPresetsTable.ALL_BUT_HOLSTER_SHIELD = entry(0x3FF, "All slots except shield and holster")
+  end
 
   module.Slots = Enum.sequence(slotTable)
   module.SlotsBitmask = Enum.bitmask(slotTable)
-
-  module.SlotPresets = Enum.sequence {
-    ALL_SLOTS              = entry(0xFFF, "All slots"),
-    ALL_BUT_WEAPON         = entry(0xBFB, "All slots except weapons"),
-    ALL_BUT_HOLSTER        = entry(0xBFF, "All slots except holster"),
-    ALL_BUT_SHIELD         = entry(0x7FF, "All slots except shield"),
-    ALL_BUT_WEAPON_SHIELD  = entry(0x3FB, "All slots except shield and weapons"),
-    ALL_BUT_HOLSTER_SHIELD = entry(0x3FF, "All slots except shield and holster"),
-    NO_SLOTS               = entry(0x000, "No slots")
-  }
+  module.SlotPresets = Enum.sequence(slotPresetsTable)
 end
 
 module.CharmsAlgorithm = Enum.sequence {

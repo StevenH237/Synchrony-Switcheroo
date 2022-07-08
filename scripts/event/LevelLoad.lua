@@ -146,7 +146,9 @@ end
 local function slotsToSet(enum, value)
   local ret = {}
   for i, v in pairs(NixLib.bitSplit(value)) do
-    ret[enum.names[v]:lower()] = true
+    if enum.names[v] then
+      ret[enum.names[v]:lower()] = true
+    end
   end
   return ret
 end

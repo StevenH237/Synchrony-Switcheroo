@@ -37,6 +37,10 @@ local function isAmplified()
   return GameDLC.isAmplifiedLoaded()
 end
 
+local function isSynchrony()
+  return GameDLC.isSynchronyLoaded()
+end
+
 --#endregion Enablers
 
 ----------------
@@ -332,7 +336,7 @@ PowerSettings.group {
 
 PowerSettings.entitySchema.bool {
   name = "Magic food",
-  desc = "Whether or not magic food should be banned from the item pool.",
+  desc = "Whether or not magic food should be removed from Switcheroo's item pool.",
   id = "dontGive.magicFood",
   order = 0,
   default = true,
@@ -341,7 +345,7 @@ PowerSettings.entitySchema.bool {
 
 PowerSettings.entitySchema.bool {
   name = "Movement amplifiers",
-  desc = "Whether or not movement amplifiers should be banned from the item pool.",
+  desc = "Whether or not movement amplifiers should be removed from Switcheroo's item pool.",
   id = "dontGive.moveAmplifiers",
   order = 1,
   default = true,
@@ -350,7 +354,7 @@ PowerSettings.entitySchema.bool {
 
 PowerSettings.entitySchema.bool {
   name = "Incoming-damage increasers",
-  desc = "Whether or not items that increase incoming damage should be banned from the item pool.",
+  desc = "Whether or not items that increase incoming damage should be removed from Switcheroo's item pool.",
   id = "dontGive.damageUps",
   order = 2,
   default = true,
@@ -359,7 +363,7 @@ PowerSettings.entitySchema.bool {
 
 PowerSettings.entitySchema.bool {
   name = "Gold-related items",
-  desc = "Whether or not items that affect the collection of gold should be banned from the item pool.",
+  desc = "Whether or not items that affect the collection of gold should be removed from Switcheroo's item pool.",
   id = "dontGive.goldItems",
   order = 3,
   default = false,
@@ -368,7 +372,7 @@ PowerSettings.entitySchema.bool {
 
 PowerSettings.entitySchema.bool {
   name = "Vision-reducing items",
-  desc = "Whether or not items that reduce vision should be banned from the item pool.",
+  desc = "Whether or not items that reduce vision should be removed from Switcheroo's item pool.",
   id = "dontGive.visionReducers",
   order = 4,
   default = true,
@@ -376,8 +380,17 @@ PowerSettings.entitySchema.bool {
 }
 
 PowerSettings.entitySchema.bool {
+  name = "Floating items",
+  desc = "Whether or not items that cause levitation should be removed from Switcheroo's item pool.",
+  id = "dontGive.floatingItems",
+  order = 4.5,
+  default = false,
+  format = itemBanFormat
+}
+
+PowerSettings.entitySchema.bool {
   name = "Deadly items",
-  desc = "Whether or not items that are only banned as \"kill player on pickup\" should be banned from the item pool.",
+  desc = "Whether or not items that are only banned as \"kill player on pickup\" should be removed from Switcheroo's item pool.",
   id = "dontGive.deadlyItems",
   order = 5,
   default = true,
@@ -386,7 +399,7 @@ PowerSettings.entitySchema.bool {
 
 PowerSettings.entitySchema.bool {
   name = "Banned items",
-  desc = "Whether or not items normally banned for a character should be banned from the item pool.",
+  desc = "Whether or not items normally banned for a character should be removed from Switcheroo's item pool.",
   id = "dontGive.bannedItems",
   order = 6,
   default = true,

@@ -1,9 +1,11 @@
+local Attack    = require "necro.game.character.Attack"
 local Event     = require "necro.event.Event"
 local Utitilies = require "system.utils.Utilities"
 
-local SwEnum = require "Switcheroo.Enum"
-local SEDontTake = SwEnum.DontTake
+local SwEnum     = require "Switcheroo.Enum"
 local SwSettings = require "Switcheroo.Settings"
+
+local NixLib = require "NixLib.NixLib"
 
 local function copyToSet(table)
   local out = {}
@@ -46,6 +48,17 @@ Event.entitySchemaGenerate.add("checks", { order = "components", sequence = -1 }
 
   if SwSettings.get("dontGive.visionReducers") then
     componentsNotGiven.itemLimitTileVisionRadius = true
+  end
+
+  -- using fake components here just so we have a marker without making an extra variable
+  -- so that we don't need to make a Settings Get call every item
+  -- I'll code in a special case for it in a sec
+  if SwSettings.get("dontGive.magicFood") then
+    componentsNotGiven.Switcheroo_magicFood = true
+  end
+
+  if SwSettings.get("dontGive.floatingItems") then
+    componentsNotGiven.Switcheroo_levitation = true
   end
 
   -- Items to not take
@@ -104,7 +117,15 @@ local function addItemComponents(entity)
     end
 
     -- Is it magic food, and is magic food banned?
-    if entity.consumableHeal and entity.consumableHeal.overheal and SwSettings.get("dontGive.magicFood") then
+    if entity.consumableHeal and entity.consumableHeal.overheal and componentsNotGiven.Switcheroo_magicFood then
+      entity.Switcheroo_noGive = {}
+      goto noTake
+    end
+
+    -- Is it levitation, and is levitation banned?
+    if entity.itemAttackableFlags and entity.itemAttackableFlags.remove and
+        NixLib.checkFlags(entity.itemAttackableFlags.remove, Attack.Flag.TRAP) and
+        componentsNotGiven.Switcheroo_levitation then
       entity.Switcheroo_noGive = {}
       goto noTake
     end
