@@ -592,7 +592,7 @@ end
 -- EVENT HANDLER --
 --#region----------
 
-Event.levelLoad.add("switchBuilds", { order = "entities", sequence = 1 }, function(ev)
+Event.levelLoad.add("switchBuilds", { order = "enemySubstitutions", sequence = -1 }, function(ev)
   if not canRunHere() then goto noRun end
 
   mapChanceSettings()
