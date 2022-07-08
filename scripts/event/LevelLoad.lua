@@ -597,11 +597,12 @@ Event.levelLoad.add("switchBuilds", { order = "entities", sequence = 1 }, functi
 
   mapChanceSettings()
 
-  Try.catch(function()
-    for i, p in ipairs(Player.getPlayerEntities()) do
-      -- Stair immunity prevents pain-on-equip items from causing pain.
-      p.descentDamageImmunity.active = true
+  for i, p in ipairs(Player.getPlayerEntities()) do
+    -- Stair immunity prevents pain-on-equip items from causing pain.
+    local ddi = p.descentDamageImmunity.active
+    p.descentDamageImmunity.active = true
 
+    Try.catch(function()
       -- First, we need to figure out which slots *can be* selected.
       local emptySlots, fullSlots = getAllowedSlots(p)
 
@@ -615,9 +616,10 @@ Event.levelLoad.add("switchBuilds", { order = "entities", sequence = 1 }, functi
       -- And now let's deal with taking and giving items, as necessary.
       changeItemsInSlots(p, slots)
 
-      p.descentDamageImmunity.active = false
-    end
-  end)
+    end)
+
+    p.descentDamageImmunity.active = ddi
+  end
 
   firstGen = false
 
