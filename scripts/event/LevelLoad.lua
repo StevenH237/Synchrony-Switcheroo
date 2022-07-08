@@ -306,14 +306,11 @@ local function getAllowedSlots(player)
     if hudItem and hudItem.itemHolster then
       local content = hudItem.itemHolster.content
       if content == 0 then
-        print("Empty holster added")
         outEmpty[#outEmpty + 1] = {
           slotName = "holster",
           holster = hudItem
         }
       else
-        print("Filled holster added")
-        print("Holster's held entity ID: " .. content)
         -- Is this an item we can remove?
         local heldItem = Entities.getEntityByID(content)
         if heldItem then
@@ -437,8 +434,6 @@ local function selectSlots(player, emptySlots, fullSlots)
 end
 
 local function getChoiceOpts(player, slot)
-  print("Generating item for " .. slot)
-
   local choiceOpts = {
     -- banMask = see below,
     -- default = see below,
