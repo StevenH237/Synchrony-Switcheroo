@@ -41,37 +41,17 @@ local chances
 
 -- Maps simple settings onto advanced.
 local function mapChanceSettings()
-  if SwSettings.get("replacement.advanced") then
-    chances = {
-      emptyChance = SwSettings.get("replacement.advancedEmptyChance"),
-      emptyMinSlots = SwSettings.get("replacement.advancedEmptyMinSlots"),
-      fullMinSlots = SwSettings.get("replacement.advancedFullMinSlots"),
-      fullReplaceChance = SwSettings.get("replacement.advancedFullReplaceChance"),
-      fullSelectChance = SwSettings.get("replacement.advancedFullSelectChance"),
-      maxItems = SwSettings.get("replacement.advancedMaxItems"),
-      maxSlots = SwSettings.get("replacement.advancedMaxSlots"),
-      minItems = SwSettings.get("replacement.advancedMinItems"),
-      minSlots = SwSettings.get("replacement.advancedMinSlots")
-    }
-  else
-    chances = {
-      emptyChance = SwSettings.get("replacement.simpleChance"),
-      emptyMinSlots = 0,
-      fullMinSlots = 0,
-      fullReplaceChance = 1,
-      fullSelectChance = SwSettings.get("replacement.simpleChance"),
-      maxItems = -1,
-      maxSlots = -1,
-      minItems = 0,
-      minSlots = 0
-    }
-
-    if SwSettings.get("replacement.simpleMode") == SwEnum.ReplaceMode.EXISTING then
-      chances.emptyChance = 0
-    elseif SwSettings.get("replacement.simpleMode") == SwEnum.ReplaceMode.EMPTY then
-      chances.fullSelectChance = 0
-    end
-  end
+  chances = {
+    emptyChance = SwSettings.get("replacement.advancedEmptyChance"),
+    emptyMinSlots = SwSettings.get("replacement.advancedEmptyMinSlots"),
+    fullMinSlots = SwSettings.get("replacement.advancedFullMinSlots"),
+    fullReplaceChance = SwSettings.get("replacement.advancedFullReplaceChance"),
+    fullSelectChance = SwSettings.get("replacement.advancedFullSelectChance"),
+    maxItems = SwSettings.get("replacement.advancedMaxItems"),
+    maxSlots = SwSettings.get("replacement.advancedMaxSlots"),
+    minItems = SwSettings.get("replacement.advancedMinItems"),
+    minSlots = SwSettings.get("replacement.advancedMinSlots")
+  }
 
   if chances.maxSlots == -1 then
     chances.maxSlots = math.huge

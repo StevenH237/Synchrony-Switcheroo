@@ -25,13 +25,8 @@ local componentsNeverTaken
 
 Event.entitySchemaGenerate.add("checks", { order = "components", sequence = -1 }, function()
   -- Items to not give
-  itemNamesNotGiven = {}
-  componentsNotGiven = {}
-
-  if SwSettings.get("dontGive.advanced") then
-    itemNamesNotGiven = copyToSet(SwSettings.get("dontGive.items"))
-    componentsNotGiven = copyToSet(SwSettings.get("dontGive.components"))
-  end
+  itemNamesNotGiven = copyToSet(SwSettings.get("dontGive.items"))
+  componentsNotGiven = copyToSet(SwSettings.get("dontGive.components"))
 
   if SwSettings.get("dontGive.damageUps") then
     componentsNotGiven.itemIncomingDamageMultiplier = true
@@ -40,6 +35,7 @@ Event.entitySchemaGenerate.add("checks", { order = "components", sequence = -1 }
 
   if SwSettings.get("dontGive.goldItems") then
     componentsNotGiven.itemBanPoverty = true
+    componentsNotGiven.itemBanKillPoverty = true
   end
 
   if SwSettings.get("dontGive.moveAmplifiers") then
@@ -62,17 +58,10 @@ Event.entitySchemaGenerate.add("checks", { order = "components", sequence = -1 }
   end
 
   -- Items to not take
-  itemNamesNotTakenUnlessGiven = {}
-  itemNamesNeverTaken = {}
-  componentsNotTakenUnlessGiven = {}
-  componentsNeverTaken = {}
-
-  if SwSettings.get("dontTake.advanced") then
-    itemNamesNotTakenUnlessGiven = copyToSet(SwSettings.get("dontTake.itemsUnlessGiven"))
-    itemNamesNeverTaken = copyToSet(SwSettings.get("dontTake.items"))
-    componentsNotTakenUnlessGiven = copyToSet(SwSettings.get("dontTake.componentsUnlessGiven"))
-    componentsNeverTaken = copyToSet(SwSettings.get("dontTake.components"))
-  end
+  itemNamesNotTakenUnlessGiven = copyToSet(SwSettings.get("dontTake.itemsUnlessGiven"))
+  itemNamesNeverTaken = copyToSet(SwSettings.get("dontTake.items"))
+  componentsNotTakenUnlessGiven = copyToSet(SwSettings.get("dontTake.componentsUnlessGiven"))
+  componentsNeverTaken = copyToSet(SwSettings.get("dontTake.components"))
 
   local NeverTake = SwEnum.DontTake.DONT_TAKE
   local TakeIfGiven = SwEnum.DontTake.TAKE_IF_GIVEN

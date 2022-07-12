@@ -29,16 +29,46 @@ end
 -- ENABLERS --
 --#region-----
 
-local function isAdvanced()
-  return SettingsStorage.get("config.showAdvanced")
+local function both(a, b)
+  return function()
+    return a() and b()
+  end
 end
 
-local function isAmplified()
-  return GameDLC.isAmplifiedLoaded()
+local function either(a, b)
+  return function()
+    return a() or b()
+  end
 end
 
-local function isSynchrony()
-  return GameDLC.isSynchronyLoaded()
+local function anti(a)
+  return function()
+    return not a()
+  end
+end
+
+local function isAdvanced(exp)
+  if exp == nil then exp = true end
+
+  return function()
+    return PowerSettings.get("config.showAdvanced") == exp
+  end
+end
+
+local function isAmplified(exp)
+  if exp == nil then exp = true end
+
+  return function()
+    return GameDLC.isAmplifiedLoaded() == exp
+  end
+end
+
+local function isSynchrony(exp)
+  if exp == nil then exp = true end
+
+  return function()
+    return GameDLC.isSynchronyLoaded()
+  end
 end
 
 --#endregion Enablers
@@ -162,50 +192,11 @@ PowerSettings.group {
 
 --#region Replacement settings
 
--- Hidden setting controlling advanced mode
-PowerSettings.shared.bool {
-  name = "Use advanced settings",
-  desc = "Show and use the advanced settings in this section",
-  id = "replacement.advanced",
-  order = 0,
-  default = false,
-  visibleIf = function() return isAdvanced() or getRaw("replacement.advanced") end,
-  refreshOnChange = true
-}
-
---#region Replacement settings (simple)
-
-PowerSettings.shared.enum {
-  name = "Replace mode",
-  desc = "Whether to replace existing items, generate new items, or both",
-  id = "replacement.simpleMode",
-  order = 1,
-  visibleIf = function() return not get("replacement.advanced") end,
-  enum = SwEnum.ReplaceMode,
-  default = SwEnum.ReplaceMode.EVERYTHING
-}
-
-PowerSettings.shared.percent {
-  name = "Replace chance",
-  desc = "Chance to replace items in selected inventory slots",
-  id = "replacement.simpleChance",
-  order = 2,
-  visibleIf = function() return not get("replacement.advanced") end,
-  default = 1,
-  step = 0.05,
-  editAsString = true
-}
-
---#endregion Replacement settings (simple)
-
---#region Replacement settings (advanced)
-
 PowerSettings.shared.percent {
   name = "Empty slot fill chance",
   desc = "The chance an empty slot is selected and filled.",
   id = "replacement.advancedEmptyChance",
   order = 1,
-  visibleIf = function() return get("replacement.advanced") end,
   default = 1,
   step = 0.05,
   editAsString = true
@@ -216,7 +207,7 @@ PowerSettings.shared.number {
   desc = "The number of empty slots that must be picked (if that many exist), even if 0% chance.",
   id = "replacement.advancedEmptyMinSlots",
   order = 2,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = 0,
   minimum = 0
 }
@@ -226,7 +217,6 @@ PowerSettings.shared.percent {
   desc = "The chance a filled slot is selected and emptied.",
   id = "replacement.advancedFullSelectChance",
   order = 3,
-  visibleIf = function() return get("replacement.advanced") end,
   default = 1,
   step = 0.05,
   editAsString = true
@@ -237,7 +227,7 @@ PowerSettings.shared.percent {
   desc = "The chance a selected (filled) slot is replaced.",
   id = "replacement.advancedFullReplaceChance",
   order = 4,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = 1,
   step = 0.05,
   editAsString = true
@@ -248,7 +238,7 @@ PowerSettings.shared.number {
   desc = "The number of full slots that must be picked (if that many exist), even if 0% chance.",
   id = "replacement.advancedFullMinSlots",
   order = 5,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = 0,
   minimum = 0
 }
@@ -258,7 +248,7 @@ PowerSettings.shared.number {
   desc = "The number of slots that must be picked, if it's more than the two individual minimums.",
   id = "replacement.advancedMinSlots",
   order = 6,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = 0,
   minimum = 0
 }
@@ -268,7 +258,7 @@ PowerSettings.shared.number {
   desc = "The highest number of slots that must be picked.",
   id = "replacement.advancedMaxSlots",
   order = 7,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = -1,
   format = maxItemsSlotsFormat
 }
@@ -278,7 +268,7 @@ PowerSettings.shared.number {
   desc = "The number of items that must be given, if that many slots are picked.",
   id = "replacement.advancedMinItems",
   order = 8,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = 0,
   minimum = 0
 }
@@ -288,12 +278,10 @@ PowerSettings.shared.number {
   desc = "The highest number of items that must be given.",
   id = "replacement.advancedMaxItems",
   order = 9,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = -1,
   format = maxItemsSlotsFormat
 }
-
---#endregion Replacement settings (advanced)
 
 --#endregion Replacement settings
 
@@ -406,24 +394,12 @@ PowerSettings.entitySchema.bool {
   format = itemBanFormat
 }
 
--- Hidden setting controlling advanced mode
-PowerSettings.entitySchema.bool {
-  name = "Use advanced settings",
-  desc = "Show and use advanced settings in this section.",
-  id = "dontGive.advanced",
-  order = 7,
-  default = false,
-  visibleIf = function() return isAdvanced() or getRaw("dontGive.advanced") end,
-  refreshOnChange = true
-}
-
---#region Don't give advanced
 PowerSettings.entitySchema.list.component {
   name = "Components",
   desc = "Specific components that shouldn't be given.",
   id = "dontGive.components",
-  order = 8,
-  visibleIf = function() return get("dontGive.advanced") end,
+  order = 7,
+  visibleIf = isAdvanced(),
   default = {},
   itemDefault = "item"
 }
@@ -433,7 +409,7 @@ PowerSettings.entitySchema.list.entity {
   desc = "Specific items that shouldn't be given.",
   id = "dontGive.items",
   order = 9,
-  visibleIf = function() return get("dontGive.advanced") end,
+  visibleIf = isAdvanced(),
   default = {},
   filter = "item",
   itemDefault = "MiscPotion"
@@ -496,23 +472,11 @@ PowerSettings.entitySchema.enum {
   default = SwEnum.DontTake.DONT_TAKE
 }
 
--- Hidden setting controlling advanced mode
-PowerSettings.entitySchema.bool {
-  name = "Use advanced settings",
-  desc = "Show and use the advanced settings in this section.",
-  id = "dontTake.advanced",
-  order = 5,
-  default = false,
-  visibleIf = function() return isAdvanced() or getRaw("dontTake.advanced") end,
-  refreshOnChange = true
-}
-
---#region Don't take advanced
 PowerSettings.entitySchema.label {
   name = "Items below can be taken if, and only if, given by the mod.",
   id = "dontTake.unlessGivenLabel",
   order = 6,
-  visibleIf = function() return get("dontTake.advanced") end
+  visibleIf = isAdvanced()
 }
 
 PowerSettings.entitySchema.list.entity {
@@ -520,7 +484,7 @@ PowerSettings.entitySchema.list.entity {
   desc = "Specific items that shouldn't be taken (unless given).",
   id = "dontTake.itemsUnlessGiven",
   order = 7,
-  visibleIf = function() return get("dontTake.advanced") end,
+  visibleIf = isAdvanced(),
   default = {},
   filter = "item",
   itemDefault = "MiscPotion"
@@ -531,7 +495,7 @@ PowerSettings.entitySchema.list.component {
   desc = "Specific components that shouldn't be taken (unless given).",
   id = "dontTake.componentsUnlessGiven",
   order = 8,
-  visibleIf = function() return get("dontTake.advanced") end,
+  visibleIf = isAdvanced(),
   default = {},
   itemDefault = "item"
 }
@@ -540,7 +504,7 @@ PowerSettings.entitySchema.label {
   name = "Items below cannot be taken by the mod at all.",
   id = "dontTake.alwaysLabel",
   order = 9,
-  visibleIf = function() return get("dontTake.advanced") end
+  visibleIf = isAdvanced()
 }
 
 PowerSettings.entitySchema.list.entity {
@@ -548,7 +512,7 @@ PowerSettings.entitySchema.list.entity {
   desc = "Specific items that shouldn't be taken.",
   id = "dontTake.items",
   order = 10,
-  visibleIf = function() return get("dontTake.advanced") end,
+  visibleIf = isAdvanced(),
   default = {},
   filter = "item",
   itemDefault = "MiscPotion"
@@ -559,32 +523,20 @@ PowerSettings.entitySchema.list.component {
   desc = "Specific components that shouldn't be taken.",
   id = "dontTake.components",
   order = 11,
-  visibleIf = function() return get("dontTake.advanced") end,
+  visibleIf = isAdvanced(),
   default = {},
   itemDefault = "item"
 }
---#endregion Don't take (advanced)
-
 --#endregion Don't take items...
 
 --#region Advanced
-
-PowerSettings.shared.bool {
-  name = "Use advanced settings",
-  desc = "Show and use the advanced settings in the main section.",
-  id = "advanced",
-  order = 7,
-  default = false,
-  visibleIf = function() return isAdvanced() or getRaw("advanced") end,
-  refreshOnChange = true
-}
 
 PowerSettings.group {
   name = "Slot settings",
   desc = "Settings that modify slots.",
   id = "slots",
   order = 8,
-  visibleIf = function() return get("advanced") end
+  visibleIf = isAdvanced()
 }
 
 --#region Slot settings
@@ -594,7 +546,7 @@ PowerSettings.shared.bitflag {
   desc = "Which slots can the mod alter?",
   id = "slots.allowed",
   order = 0,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   flags = SwEnum.SlotsBitmask,
   presets = SwEnum.SlotPresets,
   default = SwEnum.SlotPresets.ALL_SLOTS
@@ -605,7 +557,7 @@ PowerSettings.shared.bitflag {
   desc = "Which slots can the mod ignore item bans within?",
   id = "slots.unlocked",
   order = 1,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   flags = SwEnum.SlotsBitmask,
   presets = SwEnum.SlotPresets,
   default = SwEnum.SlotPresets.NO_SLOTS
@@ -616,7 +568,7 @@ PowerSettings.shared.bitflag {
   desc = "Which slots can the mod only alter once?",
   id = "slots.oneTime",
   order = 2,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   flags = SwEnum.SlotsBitmask,
   presets = SwEnum.SlotPresets,
   default = SwEnum.SlotPresets.NO_SLOTS
@@ -627,7 +579,7 @@ PowerSettings.shared.number {
   desc = "How many items should be given per slot, even if it can hold more? Charms not included.",
   id = "slots.capacity",
   order = 3,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   default = 3,
   minimum = 1
 }
@@ -637,7 +589,7 @@ PowerSettings.shared.bool {
   desc = "If there are more items than the cap in a slot, should the items be downsized?",
   id = "slots.reduce",
   order = 4,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   default = true
 }
 
@@ -648,7 +600,7 @@ PowerSettings.group {
   desc = "Settings related to the Misc (Charms) slots",
   id = "charms",
   order = 9,
-  visibleIf = function() return get("advanced") end
+  visibleIf = isAdvanced()
 }
 
 --#region Charms settings
@@ -658,7 +610,7 @@ PowerSettings.shared.enum {
   desc = "Which charms algorithm should be used?",
   id = "charms.algorithm",
   order = 0,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   enum = SwEnum.CharmsAlgorithm,
   default = SwEnum.CharmsAlgorithm.DICE_BASED,
   refreshOnChange = true
@@ -795,7 +747,7 @@ PowerSettings.group {
   desc = "Default items if generation fails or item is deleted",
   id = "defaults",
   order = 10,
-  visibleIf = function() return get("advanced") end
+  visibleIf = isAdvanced()
 }
 
 --#region Default items
@@ -805,7 +757,7 @@ PowerSettings.shared.entity {
   desc = "Default item for consumable slot",
   id = "defaults.action",
   order = 0,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("action"),
   default = "Switcheroo_NoneItem"
 }
@@ -815,7 +767,7 @@ PowerSettings.shared.entity {
   desc = "Default item for shovel slot",
   id = "defaults.shovel",
   order = 1,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("shovel"),
   default = "ShovelBasic"
 }
@@ -825,7 +777,7 @@ PowerSettings.shared.entity {
   desc = "Default item for weapon slot",
   id = "defaults.weapon",
   order = 2,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("weapon"),
   default = "WeaponDagger"
 }
@@ -835,7 +787,7 @@ PowerSettings.shared.entity {
   desc = "Default item for body slot",
   id = "defaults.body",
   order = 3,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("body"),
   default = "Switcheroo_NoneItem"
 }
@@ -845,7 +797,7 @@ PowerSettings.shared.entity {
   desc = "Default item for head slot",
   id = "defaults.head",
   order = 4,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("head"),
   default = "Switcheroo_NoneItem"
 }
@@ -855,7 +807,7 @@ PowerSettings.shared.entity {
   desc = "Default item for feet slot",
   id = "defaults.feet",
   order = 5,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("feet"),
   default = "Switcheroo_NoneItem"
 }
@@ -865,7 +817,7 @@ PowerSettings.shared.entity {
   desc = "Default item for torch slot",
   id = "defaults.torch",
   order = 6,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("torch"),
   default = "Switcheroo_NoneItem"
 }
@@ -875,7 +827,7 @@ PowerSettings.shared.entity {
   desc = "Default item for ring slot",
   id = "defaults.ring",
   order = 7,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("ring"),
   default = "Switcheroo_NoneItem"
 }
@@ -885,8 +837,18 @@ PowerSettings.shared.entity {
   desc = "Default item for spell slots",
   id = "defaults.spell",
   order = 8,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("spell"),
+  default = "Switcheroo_NoneItem"
+}
+
+PowerSettings.shared.entity {
+  name = "Shield",
+  desc = "Default item for shield slots",
+  id = "defaults.shield",
+  order = 9,
+  visibleIf = both(isAdvanced(), isSynchrony()),
+  filter = itemSlotFilter("shield"),
   default = "Switcheroo_NoneItem"
 }
 
@@ -895,7 +857,7 @@ PowerSettings.shared.entity {
   desc = "Default item for holsters",
   id = "defaults.holster",
   order = 9,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = function(ent)
     return ent.name == "Switcheroo_NoneItem" or ent.item
   end,
@@ -909,7 +871,7 @@ PowerSettings.shared.list.component {
   desc = "Which generator(s) should be used for the mod?",
   id = "generators",
   order = 11,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   default = { "itemPoolSecret" },
   itemDefault = "itemPoolSecret",
   filter = itemPoolComponentFilter,
@@ -921,8 +883,8 @@ PowerSettings.shared.bool {
   desc = "Should the unweighted generator be used if no item pool generates an item?",
   id = "generatorFallback",
   order = 12,
-  visibleIf = function() return get("advanced") end,
-  default = true
+  visibleIf = isAdvanced(),
+  default = false
 }
 
 PowerSettings.group {
