@@ -53,6 +53,12 @@ module.DontTake = Enum.sequence {
   DONT_TAKE     = entry(2, "Don't take item")
 }
 
+module.DontGiveGold = Enum.sequence {
+  DONT_BAN = entry(0, "Don't ban"),
+  BAN      = entry(1, "Ban"),
+  DYNAMIC  = entry(2, "Dynamic ban")
+}
+
 do
   local slotTable = {
     ACTION  = entry(1, "Item"),
