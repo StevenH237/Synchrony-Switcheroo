@@ -9,6 +9,9 @@ Components.register {
   },
   Switcheroo_randomizer = {
     Components.field.entityID("entity")
+  },
+  Switcheroo_itemPoolSwitcheroo = {
+    Components.constant.table("weights", { 1 })
   }
 }
 

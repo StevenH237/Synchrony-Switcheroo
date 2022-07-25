@@ -1,6 +1,6 @@
 local Attack    = require "necro.game.character.Attack"
 local Event     = require "necro.event.Event"
-local Utitilies = require "system.utils.Utilities"
+local Utilities = require "system.utils.Utilities"
 
 local SwEnum     = require "Switcheroo.Enum"
 local SwSettings = require "Switcheroo.Settings"
@@ -149,6 +149,16 @@ local function addItemComponents(entity)
   entity.Switcheroo_noTake = false
 
   ::endTake::
+  --
+  -- Add item pool weights
+  if entity.itemPoolSecret then
+    -- If there's an itemPoolSecret chance, we'll use that first.
+    -- print(entity.name .. " has secret chance")
+    entity.Switcheroo_itemPoolSwitcheroo = { weights = Utilities.fastCopy(entity.itemPoolSecret.weights) }
+  elseif entity.itemSlot and entity.itemSlot.name == "shield" and entity.itemPoolBlackChest then
+    -- Otherwise, is it a shield?
+    entity.Switcheroo_itemPoolSwitcheroo = { weights = Utilities.fastCopy(entity.itemPoolBlackChest.weights) }
+  end
 end
 
 local function addPlayerComponents(entity)

@@ -118,22 +118,23 @@ local function diceDropFormat(value)
 end
 
 local itemPoolNames = {
-  itemPoolChest       = "Chest",
-  itemPoolRedChest    = "Red boss chest",
-  itemPoolPurpleChest = "Purple boss chest",
-  itemPoolBlackChest  = "Black boss chest",
-  itemPoolLockedChest = "Locked chest",
-  itemPoolShop        = "Shop",
-  itemPoolLockedShop  = "Locked shop",
-  itemPoolUrn         = "Urn",
-  itemPoolSecret      = "Conjurer",
-  itemPoolFood        = "Food",
-  itemPoolHearts      = "Hearts",
-  itemPoolCrate       = "Crate",
-  itemPoolWar         = "Shrine of War",
-  itemPoolUncertainty = "Shrine of Uncertainty",
-  itemPoolEnchant     = "Enchant weapon scroll",
-  itemPoolNeed        = "Need scroll"
+  itemPoolChest                 = "Chest",
+  itemPoolRedChest              = "Red boss chest",
+  itemPoolPurpleChest           = "Purple boss chest",
+  itemPoolBlackChest            = "Black boss chest",
+  itemPoolLockedChest           = "Locked chest",
+  itemPoolShop                  = "Shop",
+  itemPoolLockedShop            = "Locked shop",
+  itemPoolUrn                   = "Urn",
+  itemPoolSecret                = "Conjurer",
+  itemPoolFood                  = "Food",
+  itemPoolHearts                = "Hearts",
+  itemPoolCrate                 = "Crate",
+  itemPoolWar                   = "Shrine of War",
+  itemPoolUncertainty           = "Shrine of Uncertainty",
+  itemPoolEnchant               = "Enchant weapon scroll",
+  itemPoolNeed                  = "Need scroll",
+  Switcheroo_itemPoolSwitcheroo = "Switcheroo default"
 }
 
 local function itemPoolFormat(value)
@@ -872,7 +873,7 @@ PowerSettings.shared.list.component {
   id = "generators",
   order = 11,
   visibleIf = isAdvanced(),
-  default = { "itemPoolSecret" },
+  default = { "Switcheroo_itemPoolSwitcheroo" },
   itemDefault = "itemPoolSecret",
   filter = itemPoolComponentFilter,
   itemFormat = itemPoolFormat
