@@ -22,6 +22,7 @@ local itemNamesNeverTaken
 local componentsNotGiven
 local componentsNotTakenUnlessGiven
 local componentsNeverTaken
+local dynamicGoldBan = false
 
 Event.entitySchemaGenerate.add("checks", { order = "components", sequence = -1 }, function()
   -- Items to not give
@@ -33,9 +34,13 @@ Event.entitySchemaGenerate.add("checks", { order = "components", sequence = -1 }
     componentsNotGiven.itemIncomingDamageIncrease = true
   end
 
-  if SwSettings.get("dontGive.goldItems") then
+  if SwSettings.get("dontGive.goldItems") == SwEnum.DontGiveGold.BAN then
     componentsNotGiven.itemBanPoverty = true
     componentsNotGiven.itemBanKillPoverty = true
+    table.insert(itemNamesNotGiven, "RingGold")
+    table.insert(itemNamesNotGiven, "RingGoldUncertain")
+  elseif SwSettings.get("dontGive.goldItems") == SwEnum.DontGiveGold.DYNAMIC then
+    dynamicGoldBan = true
   end
 
   if SwSettings.get("dontGive.moveAmplifiers") then
@@ -116,6 +121,14 @@ local function addItemComponents(entity)
         NixLib.checkFlags(entity.itemAttackableFlags.remove, Attack.Flag.TRAP) and
         componentsNotGiven.Switcheroo_levitation then
       entity.Switcheroo_noGive = {}
+      goto noTake
+    end
+
+    -- Is it gold, and are we dynamic-banning gold?
+    if (
+        entity.itemBanPoverty or entity.itemBanKillPoverty or entity.name == "RingGold" or
+            entity.name == "RingGoldUncertain") and dynamicGoldBan then
+      entity.Switcheroo_noGiveIfBroke = {}
       goto noTake
     end
   end

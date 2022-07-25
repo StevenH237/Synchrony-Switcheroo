@@ -427,6 +427,11 @@ local function getChoiceOpts(player, slot)
   choiceOpts.banMask = 0
   choiceOpts.player = player
 
+  -- Dynamic gold ban checking
+  if player.goldCounter and player.goldCounter.amount == 0 then
+    table.insert(choiceOpts.excludedComponents, "Switcheroo_noGiveIfBroke")
+  end
+
   if not checkFlags(SwSettings.get("slots.unlocked"), SwEnum.SlotsBitmask[slot:upper()]) then
     choiceOpts.banMask = ItemBan.Flag.GENERATE_ITEM_POOL + ItemBan.Flag.GENERATE_TRANSACTION
   end

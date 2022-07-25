@@ -3,6 +3,7 @@ local CustomEntities = require "necro.game.data.CustomEntities"
 
 Components.register {
   Switcheroo_noGive = {},
+  Switcheroo_noGiveIfBroke = {},
   Switcheroo_noTake = {
     Components.constant.bool("unlessGiven", false),
     Components.field.bool("wasGiven", false)

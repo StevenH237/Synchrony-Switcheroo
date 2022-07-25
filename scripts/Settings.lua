@@ -350,13 +350,13 @@ PowerSettings.entitySchema.bool {
   format = itemBanFormat
 }
 
-PowerSettings.entitySchema.bool {
+PowerSettings.entitySchema.enum {
   name = "Gold-related items",
   desc = "Whether or not items that affect the collection of gold should be removed from Switcheroo's item pool.",
   id = "dontGive.goldItems",
   order = 3,
-  default = false,
-  format = itemBanFormat
+  enum = SwEnum.DontGiveGold,
+  default = SwEnum.DontGiveGold.DYNAMIC
 }
 
 PowerSettings.entitySchema.bool {
