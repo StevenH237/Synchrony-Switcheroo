@@ -4,6 +4,7 @@ local Menu            = require "necro.menu.Menu"
 local Settings        = require "necro.config.Settings"
 local SettingsStorage = require "necro.config.SettingsStorage"
 local StringUtilities = require "system.utils.StringUtilities"
+local Utilities       = require "system.utils.Utilities"
 
 local PowerSettings = require "PowerSettings.PowerSettings"
 

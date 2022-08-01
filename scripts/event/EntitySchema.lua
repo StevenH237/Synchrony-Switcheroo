@@ -20,6 +20,7 @@ local itemNamesNotGiven
 local itemNamesNotTakenUnlessGiven
 local itemNamesNeverTaken
 local componentsNotGiven
+local componentsNotGivenIfBroke = {}
 local componentsNotTakenUnlessGiven
 local componentsNeverTaken
 local dynamicGoldBan = false
@@ -37,14 +38,16 @@ Event.entitySchemaGenerate.add("checks", { order = "components", sequence = -1 }
   if SwSettings.get("dontGive.goldItems") == SwEnum.DontGiveGold.BAN then
     componentsNotGiven.itemBanPoverty = true
     componentsNotGiven.itemBanKillPoverty = true
-    table.insert(itemNamesNotGiven, "RingGold")
-    table.insert(itemNamesNotGiven, "RingGoldUncertain")
+    componentsNotGiven.itemAutoCollectCurrencyOnMove = true
   elseif SwSettings.get("dontGive.goldItems") == SwEnum.DontGiveGold.DYNAMIC then
-    dynamicGoldBan = true
+    componentsNotGivenIfBroke.itemBanPoverty = true
+    componentsNotGivenIfBroke.itemBanKillPoverty = true
+    componentsNotGivenIfBroke.itemAutoCollectCurrencyOnMove = true
   end
 
   if SwSettings.get("dontGive.moveAmplifiers") then
     componentsNotGiven.itemMoveAmplifier = true
+    componentsNotGiven.quirks_leaping = true
   end
 
   if SwSettings.get("dontGive.visionReducers") then
@@ -124,12 +127,11 @@ local function addItemComponents(entity)
       goto noTake
     end
 
-    -- Is it gold, and are we dynamic-banning gold?
-    if (
-        entity.itemBanPoverty or entity.itemBanKillPoverty or entity.name == "RingGold" or
-            entity.name == "RingGoldUncertain") and dynamicGoldBan then
-      entity.Switcheroo_noGiveIfBroke = {}
-      goto noTake
+    for k, v in pairs(componentsNotGivenIfBroke) do
+      if entity[k] then
+        entity.Switcheroo_noGiveIfBroke = {}
+        goto noTake
+      end
     end
   end
 
@@ -166,7 +168,6 @@ local function addItemComponents(entity)
   -- Add item pool weights
   if entity.itemPoolSecret then
     -- If there's an itemPoolSecret chance, we'll use that first.
-    -- print(entity.name .. " has secret chance")
     entity.Switcheroo_itemPoolSwitcheroo = { weights = Utilities.fastCopy(entity.itemPoolSecret.weights) }
   elseif entity.itemSlot and entity.itemSlot.name == "shield" and entity.itemPoolBlackChest then
     -- Otherwise, is it a shield?

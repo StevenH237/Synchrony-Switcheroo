@@ -1,17 +1,23 @@
 {
-	"name": "Switcheroo",
+	"namespace": "Switcheroo",
 	"displayName": "Switcheroo",
-	"version": "3.0.0",
-	"synchronyVersion": "0.54",
-	"description": "Changes your build throughout the run! Inspired by Build Mutator.",
+	"version": "3.0.1",
+	"synchronyVersion": "3.1.0",
+	"description": "Changes your build throughout the run!",
 	"author": "Nixill",
 	"dependencies": {
-		"PowerSettings": "2.0.0"
+		"PowerSettings_io_2237104": "2.0.2"
 	},
 	"api": {
 		"scriptPath": "scripts"
 	},
 	"icon": "SwitcherooIcon.png",
 	"banner": "SwitcherooBanner.png",
-	"tags": []
+	"tags": [],
+	"name": "Switcheroo_io_2237106",
+	"homepageURL": "https://crypt.mod.io/switcheroo",
+	"modioID": "2237106",
+	"modioUserID": 12939888,
+	"pendingVersion": "3.0.0",
+	"visibility": 2
 }
