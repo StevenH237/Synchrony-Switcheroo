@@ -94,8 +94,7 @@ do
 end
 
 module.CharmsAlgorithm = Enum.sequence {
-  ADD_ONE    = entry(1, "Simple"),
-  DICE_BASED = entry(2, "Dice-based")
+  ADD_ONE = entry(1, "Simple")
 }
 --#endregion
 

@@ -151,41 +151,9 @@ local function getCharmCount(player)
   local chan = channel(player)
   local floor = CurrentLevel.getSequentialNumber()
 
-  if algo == SwEnum.CharmsAlgorithm.DICE_BASED then
-    local dice = math.floor(SwSettings.get("charms.diceCount") + SwSettings.get("charms.dicePerFloor") * floor)
-    local sides = math.max(math.floor(SwSettings.get("charms.diceSides") +
-      SwSettings.get("charms.diceSidesPerFloor") * floor), 2)
-    local rolled = {}
-    local sum = 0
-
-    for i = 1, dice do
-      rolled[#rolled + 1] = RNG.int(sides, chan) + 1
-    end
-
-    table.sort(rolled)
-
-    -- Drop some dice
-    local drop = SwSettings.get("charms.diceDrop")
-    local dropHigh = drop > 0
-    if dropHigh then
-      for i = 1, drop do
-        table.remove(rolled)
-      end
-    else
-      for i = -drop, -1 do
-        table.remove(rolled, 1)
-      end
-    end
-
-    for i, v in ipairs(rolled) do
-      sum = sum + v
-    end
-
-    -- Add a static amount
-    sum = sum + SwSettings.get("charms.diceAddStatic") + math.floor(SwSettings.get("charms.diceAddPerFloor") * floor)
-
-    return sum
-  elseif algo == SwEnum.CharmsAlgorithm.ADD_ONE then
+  -- This condition shouldn't fail, but I want to add more algorithms in
+  -- the future, so I'm futureproofing for that.
+  if algo == SwEnum.CharmsAlgorithm.ADD_ONE then
     local count = #(Inventory.getItemsInSlot(player, "misc"))
 
     return NixLib.median(count, count + SwSettings.get("charms.madAdd"), SwSettings.get("charms.maxTotal"))

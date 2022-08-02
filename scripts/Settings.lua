@@ -613,8 +613,9 @@ PowerSettings.shared.enum {
   id = "charms.algorithm",
   order = 0,
   visibleIf = isAdvanced(),
+  enableIf = false,
   enum = SwEnum.CharmsAlgorithm,
-  default = SwEnum.CharmsAlgorithm.DICE_BASED,
+  default = SwEnum.CharmsAlgorithm.ADD_ONE,
   refreshOnChange = true
 }
 
@@ -643,100 +644,6 @@ PowerSettings.shared.number {
   editAsString = true,
   visibleIf = function()
     return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.ADD_ONE
-  end
-}
-
-PowerSettings.shared.number {
-  name = "Dice to roll",
-  desc = "Dice to roll for charm counts.",
-  id = "charms.diceCount",
-  order = 0,
-  lowerBound = function()
-    return math.abs(get("charms.diceDrop")) + 1
-  end,
-  maximum = 10,
-  default = 3,
-  editAsString = true,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
-PowerSettings.shared.number {
-  name = "+ Dice per floor",
-  desc = "Dice to add per completed floor.",
-  id = "charms.dicePerFloor",
-  order = 1,
-  default = 0.1,
-  step = 0.05,
-  editAsString = true,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
-PowerSettings.shared.number {
-  name = "Sides on dice",
-  desc = "Sides on the dice to roll for charm counts.",
-  id = "charms.diceSides",
-  order = 2,
-  minimum = 2,
-  maximum = 10,
-  default = 4,
-  editAsString = true,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
-PowerSettings.shared.number {
-  name = "+ Sides per floor",
-  desc = "Sides to add to the dice for every floor.",
-  id = "charms.diceSidesPerFloor",
-  order = 3,
-  default = 0,
-  step = 0.05,
-  editAsString = true,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
-PowerSettings.shared.number {
-  name = "Dice to drop",
-  desc = "Drop some rolled dice, either the highest or lowest.",
-  id = "charms.diceDrop",
-  order = 3,
-  default = 0,
-  editAsString = true,
-  format = diceDropFormat,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
-PowerSettings.shared.number {
-  name = "Plus",
-  desc = "Add a static number of charms to the roll.",
-  id = "charms.diceAddStatic",
-  order = 4,
-  default = 0,
-  editAsString = true,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
-PowerSettings.shared.number {
-  name = "Plus per floor",
-  desc = "Add a static number of charms to the roll per floor.",
-  id = "charms.diceAddPerFloor",
-  order = 5,
-  default = 0,
-  step = 0.01,
-  editAsString = true,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
   end
 }
 
