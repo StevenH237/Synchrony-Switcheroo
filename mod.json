@@ -1,7 +1,7 @@
 {
 	"namespace": "Switcheroo",
 	"displayName": "Switcheroo",
-	"version": "3.0.1.1",
+	"version": "3.0.1.2",
 	"synchronyVersion": "3.1.0",
 	"description": "Changes your build throughout the run!",
 	"author": "Nixill",
@@ -11,10 +11,10 @@
 	"banner": "SwitcherooBanner.png",
 	"tags": [],
 	"name": "Switcheroo_io_2237106",
-	"changelog": "- Fix desyncs\n- METRIC TON of debugging\n- Like seriously don't update unless you want logspam\n- I'll make a new version that doesn't logspam when it's fixed",
+	"changelog": "- ok so the last patch I pushed was reverted\n- hopefully no desyncs?",
 	"homepageURL": "https://mod.io/g/crypt/m/Switcheroo",
 	"modioID": "2237106",
 	"modioUserID": 12939888,
-	"pendingVersion": "3.0.1.1",
+	"pendingVersion": "3.0.1.2",
 	"visibility": 0
 }

@@ -9,6 +9,7 @@ local Object         = require "necro.game.object.Object"
 local Player         = require "necro.game.character.Player"
 local Snapshot       = require "necro.game.system.Snapshot"
 local Try            = require "system.utils.Try"
+local Utilities      = require "system.utils.Utilities"
 
 local NixLib     = require "NixLib.NixLib"
 local checkFlags = NixLib.checkFlags
@@ -125,7 +126,7 @@ end
 -- Converts a bitmask to its individual components as keys
 local function slotsToSet(enum, value)
   local ret = {}
-  for i, v in pairs(NixLib.bitSplit(value)) do
+  for i, v in Utilities.sortedPairs(NixLib.bitSplit(value)) do
     if enum.names[v] then
       ret[enum.names[v]:lower()] = true
     end
@@ -181,7 +182,7 @@ local function getAllowedSlots(player)
   local outFull = {}
 
   -- Now let's run down through those slots.
-  for slot in pairs(allowedSlots) do
+  for slot in Utilities.sortedPairs(allowedSlots) do
     -- We'll do some special handling for misc/holster
     if slot == "holster" then
       goto nextSlot
