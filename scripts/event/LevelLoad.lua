@@ -7,13 +7,13 @@ local ItemBan        = require "necro.game.item.ItemBan"
 local ItemGeneration = require "necro.game.item.ItemGeneration"
 local Object         = require "necro.game.object.Object"
 local Player         = require "necro.game.character.Player"
-local RNG            = require "necro.game.system.RNG"
 local Snapshot       = require "necro.game.system.Snapshot"
 local Try            = require "system.utils.Try"
 
 local NixLib     = require "NixLib.NixLib"
 local checkFlags = NixLib.checkFlags
 
+local RNG        = require "Switcheroo.debug.RNG"
 local SwEnum     = require "Switcheroo.Enum"
 local SwSettings = require "Switcheroo.Settings"
 
@@ -21,8 +21,8 @@ local SwSettings = require "Switcheroo.Settings"
 -- VARIABLES --
 --#region------
 
-local lastFloorBoss = Snapshot.runVariable(nil)
-local firstGen      = Snapshot.runVariable(true)
+LastFloorBoss = Snapshot.runVariable(nil)
+FirstGen      = Snapshot.runVariable(true)
 
 -- Not snapshots, just temp variables
 local chances
@@ -115,7 +115,7 @@ local function canRunHere()
   ::customDungeonRules::
   if CurrentLevel.isBoss() then
     return checkFlags(setting, SwEnum.AllowedFloors.EXTRA_BOSS_FLOORS)
-  elseif lastFloorBoss then
+  elseif LastFloorBoss then
     return checkFlags(setting, SwEnum.AllowedFloors.EXTRA_POST_BOSSES)
   else
     return checkFlags(setting, SwEnum.AllowedFloors.EXTRA_OTHER_FLOORS)
@@ -156,7 +156,7 @@ local function getCharmCount(player)
   if algo == SwEnum.CharmsAlgorithm.ADD_ONE then
     local count = #(Inventory.getItemsInSlot(player, "misc"))
 
-    return NixLib.median(count, count + SwSettings.get("charms.madAdd"), SwSettings.get("charms.maxTotal"))
+    return NixLib.median(count, count + SwSettings.get("charms.maxAdd"), SwSettings.get("charms.maxTotal"))
   end
 
   return 0
@@ -169,7 +169,7 @@ local function getAllowedSlots(player)
   local oneTimeSlotsVal = SwSettings.get("slots.oneTime")
   local unlockedSlotsVal = SwSettings.get("slots.unlocked")
 
-  if not firstGen then
+  if not FirstGen then
     allowedSlotsVal = bit.band(allowedSlotsVal, bit.bnot(oneTimeSlotsVal))
     unlockedSlotsVal = bit.band(unlockedSlotsVal, bit.bnot(oneTimeSlotsVal))
   end
@@ -502,6 +502,9 @@ local function changeItemsInSlots(player, slots)
         newItemType = oldItem.itemTransmutableFixedOutcome.target
       end
 
+      -- Debug
+      print(player.name .. " loses " .. oldItem.name)
+
       -- Now delete old item.
       Object.delete(oldItem)
     end
@@ -524,8 +527,12 @@ local function changeItemsInSlots(player, slots)
       end
     end
 
-    if newEntity and newEntity.Switcheroo_noTake then
-      newEntity.Switcheroo_noTake.wasGiven = true
+    if newEntity then
+      -- Debug
+      print(player.name .. " gains " .. newEntity.name)
+      if newEntity.Switcheroo_noTake then
+        newEntity.Switcheroo_noTake.wasGiven = true
+      end
     end
 
     if holsterSlot then
@@ -542,6 +549,8 @@ end
 
 Event.levelLoad.add("switchBuilds", { order = "enemySubstitutions", sequence = -1 }, function(ev)
   if not canRunHere() then goto noRun end
+
+  print("Starting for " .. CurrentLevel.getDepth() .. "-" .. CurrentLevel.getFloor())
 
   mapChanceSettings()
 
@@ -569,10 +578,10 @@ Event.levelLoad.add("switchBuilds", { order = "enemySubstitutions", sequence = -
     p.descentDamageImmunity.active = ddi
   end
 
-  firstGen = false
+  FirstGen = false
 
   ::noRun::
-  lastFloorBoss = CurrentLevel.isBoss()
+  LastFloorBoss = CurrentLevel.isBoss()
 end)
 
 --#endregion

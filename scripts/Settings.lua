@@ -17,7 +17,9 @@ local SwImport = require "Switcheroo.compat.Import"
 --#region------
 
 local function get(setting)
-  return PowerSettings.get("mod.Switcheroo." .. setting)
+  local val = PowerSettings.get("mod.Switcheroo." .. setting)
+  print("Value of " .. setting .. ": " .. Utilities.inspect(val))
+  return val
 end
 
 local function getRaw(setting, layers)
