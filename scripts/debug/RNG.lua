@@ -1,3 +1,5 @@
+-- This file's functions are currently unused but are ready for a hotswap
+
 local RNG       = require "necro.game.system.RNG"
 local Utilities = require "system.utils.Utilities"
 
@@ -5,7 +7,7 @@ local module = {}
 
 local function RandomFunction(func, name, ...)
   local val = func(...)
-  print(name .. " output: " .. Utilities.inspect(val))
+  -- print(name .. " output: " .. Utilities.inspect(val))
   return val
 end
 

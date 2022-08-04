@@ -1,7 +1,7 @@
 {
 	"namespace": "Switcheroo",
 	"displayName": "Switcheroo",
-	"version": "3.0.1.2",
+	"version": "3.0.2",
 	"synchronyVersion": "3.1.0",
 	"description": "Changes your build throughout the run!",
 	"author": "Nixill",
@@ -15,6 +15,6 @@
 	"homepageURL": "https://mod.io/g/crypt/m/Switcheroo",
 	"modioID": "2237106",
 	"modioUserID": 12939888,
-	"pendingVersion": "3.0.1.2",
+	"pendingVersion": "3.0.2",
 	"visibility": 0
 }

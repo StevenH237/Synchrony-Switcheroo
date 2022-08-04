@@ -18,7 +18,7 @@ local SwImport = require "Switcheroo.compat.Import"
 
 local function get(setting)
   local val = PowerSettings.get("mod.Switcheroo." .. setting)
-  print("Value of " .. setting .. ": " .. Utilities.inspect(val))
+  -- print("Value of " .. setting .. ": " .. Utilities.inspect(val))
   return val
 end
 

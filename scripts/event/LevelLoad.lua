@@ -7,6 +7,7 @@ local ItemBan        = require "necro.game.item.ItemBan"
 local ItemGeneration = require "necro.game.item.ItemGeneration"
 local Object         = require "necro.game.object.Object"
 local Player         = require "necro.game.character.Player"
+local RNG            = require "necro.game.system.RNG"
 local Snapshot       = require "necro.game.system.Snapshot"
 local Try            = require "system.utils.Try"
 local Utilities      = require "system.utils.Utilities"
@@ -14,7 +15,7 @@ local Utilities      = require "system.utils.Utilities"
 local NixLib     = require "NixLib.NixLib"
 local checkFlags = NixLib.checkFlags
 
-local RNG        = require "Switcheroo.debug.RNG"
+-- local RNG        = require "Switcheroo.debug.RNG"
 local SwEnum     = require "Switcheroo.Enum"
 local SwSettings = require "Switcheroo.Settings"
 
@@ -504,7 +505,7 @@ local function changeItemsInSlots(player, slots)
       end
 
       -- Debug
-      print(player.name .. " loses " .. oldItem.name)
+      -- print(player.name .. " loses " .. oldItem.name)
 
       -- Now delete old item.
       Object.delete(oldItem)
@@ -530,7 +531,7 @@ local function changeItemsInSlots(player, slots)
 
     if newEntity then
       -- Debug
-      print(player.name .. " gains " .. newEntity.name)
+      -- print(player.name .. " gains " .. newEntity.name)
       if newEntity.Switcheroo_noTake then
         newEntity.Switcheroo_noTake.wasGiven = true
       end
@@ -551,7 +552,8 @@ end
 Event.levelLoad.add("switchBuilds", { order = "enemySubstitutions", sequence = -1 }, function(ev)
   if not canRunHere() then goto noRun end
 
-  print("Starting for " .. CurrentLevel.getDepth() .. "-" .. CurrentLevel.getFloor())
+  -- Debug
+  -- print("Starting for " .. CurrentLevel.getDepth() .. "-" .. CurrentLevel.getFloor())
 
   mapChanceSettings()
 
