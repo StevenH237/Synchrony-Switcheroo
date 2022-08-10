@@ -1,5 +1,7 @@
-local Enum    = require "system.utils.Enum"
-local ItemBan = require "necro.game.item.ItemBan"
+local Enum      = require "system.utils.Enum"
+local GameDLC   = require "necro.game.data.resource.GameDLC"
+local ItemBan   = require "necro.game.item.ItemBan"
+local Utilities = require "system.utils.Utilities"
 
 local module = {}
 
@@ -51,6 +53,12 @@ module.DontTake = Enum.sequence {
   DONT_TAKE     = entry(2, "Don't take item")
 }
 
+module.DontGiveGold = Enum.sequence {
+  DONT_BAN = entry(0, "Don't ban"),
+  BAN      = entry(1, "Ban"),
+  DYNAMIC  = entry(2, "Dynamic ban")
+}
+
 do
   local slotTable = {
     ACTION  = entry(1, "Item"),
@@ -66,28 +74,27 @@ do
     HOLSTER = entry(11, "Holstered weapon")
   }
 
-  module.Slots = Enum.sequence(slotTable)
-  module.SlotsBitmask = Enum.bitmask(slotTable)
-
-  module.SlotPresets = Enum.sequence {
-    ALL_SLOTS       = entry(0x7FF, "All slots"),
-    ALL_BUT_WEAPON  = entry(0x3FB, "All slots except weapons"),
-    ALL_BUT_HOLSTER = entry(0x3FF, "All slots except holster"),
+  local slotPresetsTable = {
+    ALL_SLOTS       = entry(0xFFF, "All slots"),
+    ALL_BUT_WEAPON  = entry(0xBFB, "All slots except weapons"),
+    ALL_BUT_HOLSTER = entry(0xBFF, "All slots except holster"),
     NO_SLOTS        = entry(0x000, "No slots")
   }
-end
 
-do
-  local BanCombos = {
-    ITEM_POOL   = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_ITEM_POOL,
-    CRATE_POOL  = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_CRATE,
-    SHRINE_POOL = ItemBan.Flag.PICKUP + ItemBan.Flag.GENERATE_SHRINE_POOL + ItemBan.Flag.GENERATE_TRANSACTION
-  }
+  if GameDLC.isSynchronyLoaded() then
+    slotTable.SHIELD = entry(12, "Shield")
+    slotPresetsTable.ALL_BUT_SHIELD = entry(0x7FF, "All slots except shield")
+    slotPresetsTable.ALL_BUT_WEAPON_SHIELD = entry(0x3FB, "All slots except shield and weapons")
+    slotPresetsTable.ALL_BUT_HOLSTER_SHIELD = entry(0x3FF, "All slots except shield and holster")
+  end
+
+  module.Slots = Enum.sequence(slotTable)
+  module.SlotsBitmask = Enum.bitmask(slotTable)
+  module.SlotPresets = Enum.sequence(slotPresetsTable)
 end
 
 module.CharmsAlgorithm = Enum.sequence {
-  ADD_ONE    = entry(1, "Simple"),
-  DICE_BASED = entry(2, "Dice-based")
+  ADD_ONE = entry(1, "Simple")
 }
 --#endregion
 

@@ -10,10 +10,12 @@ local Player         = require "necro.game.character.Player"
 local RNG            = require "necro.game.system.RNG"
 local Snapshot       = require "necro.game.system.Snapshot"
 local Try            = require "system.utils.Try"
+local Utilities      = require "system.utils.Utilities"
 
 local NixLib     = require "NixLib.NixLib"
 local checkFlags = NixLib.checkFlags
 
+-- local RNG        = require "Switcheroo.debug.RNG"
 local SwEnum     = require "Switcheroo.Enum"
 local SwSettings = require "Switcheroo.Settings"
 
@@ -21,8 +23,8 @@ local SwSettings = require "Switcheroo.Settings"
 -- VARIABLES --
 --#region------
 
-local lastFloorBoss = Snapshot.runVariable(nil)
-local firstGen      = Snapshot.runVariable(true)
+LastFloorBoss = Snapshot.runVariable(nil)
+FirstGen      = Snapshot.runVariable(true)
 
 -- Not snapshots, just temp variables
 local chances
@@ -41,37 +43,17 @@ local chances
 
 -- Maps simple settings onto advanced.
 local function mapChanceSettings()
-  if SwSettings.get("replacement.advanced") then
-    chances = {
-      emptyChance = SwSettings.get("replacement.advancedEmptyChance"),
-      emptyMinSlots = SwSettings.get("replacement.advancedEmptyMinSlots"),
-      fullMinSlots = SwSettings.get("replacement.advancedFullMinSlots"),
-      fullReplaceChance = SwSettings.get("replacement.advancedFullReplaceChance"),
-      fullSelectChance = SwSettings.get("replacement.advancedFullSelectChance"),
-      maxItems = SwSettings.get("replacement.advancedMaxItems"),
-      maxSlots = SwSettings.get("replacement.advancedMaxSlots"),
-      minItems = SwSettings.get("replacement.advancedMinItems"),
-      minSlots = SwSettings.get("replacement.advancedMinSlots")
-    }
-  else
-    chances = {
-      emptyChance = SwSettings.get("replacement.simpleChance"),
-      emptyMinSlots = 0,
-      fullMinSlots = 0,
-      fullReplaceChance = 1,
-      fullSelectChance = SwSettings.get("replacement.simpleChance"),
-      maxItems = -1,
-      maxSlots = -1,
-      minItems = 0,
-      minSlots = 0
-    }
-
-    if SwSettings.get("replacement.simpleMode") == SwEnum.ReplaceMode.EXISTING then
-      chances.emptyChance = 0
-    elseif SwSettings.get("replacement.simpleMode") == SwEnum.ReplaceMode.EMPTY then
-      chances.fullSelectChance = 0
-    end
-  end
+  chances = {
+    emptyChance = SwSettings.get("replacement.advancedEmptyChance"),
+    emptyMinSlots = SwSettings.get("replacement.advancedEmptyMinSlots"),
+    fullMinSlots = SwSettings.get("replacement.advancedFullMinSlots"),
+    fullReplaceChance = SwSettings.get("replacement.advancedFullReplaceChance"),
+    fullSelectChance = SwSettings.get("replacement.advancedFullSelectChance"),
+    maxItems = SwSettings.get("replacement.advancedMaxItems"),
+    maxSlots = SwSettings.get("replacement.advancedMaxSlots"),
+    minItems = SwSettings.get("replacement.advancedMinItems"),
+    minSlots = SwSettings.get("replacement.advancedMinSlots")
+  }
 
   if chances.maxSlots == -1 then
     chances.maxSlots = math.huge
@@ -135,7 +117,7 @@ local function canRunHere()
   ::customDungeonRules::
   if CurrentLevel.isBoss() then
     return checkFlags(setting, SwEnum.AllowedFloors.EXTRA_BOSS_FLOORS)
-  elseif lastFloorBoss then
+  elseif LastFloorBoss then
     return checkFlags(setting, SwEnum.AllowedFloors.EXTRA_POST_BOSSES)
   else
     return checkFlags(setting, SwEnum.AllowedFloors.EXTRA_OTHER_FLOORS)
@@ -145,8 +127,10 @@ end
 -- Converts a bitmask to its individual components as keys
 local function slotsToSet(enum, value)
   local ret = {}
-  for i, v in pairs(NixLib.bitSplit(value)) do
-    ret[enum.names[v]:lower()] = true
+  for i, v in Utilities.sortedPairs(NixLib.bitSplit(value)) do
+    if enum.names[v] then
+      ret[enum.names[v]:lower()] = true
+    end
   end
   return ret
 end
@@ -169,43 +153,12 @@ local function getCharmCount(player)
   local chan = channel(player)
   local floor = CurrentLevel.getSequentialNumber()
 
-  if algo == SwEnum.CharmsAlgorithm.DICE_BASED then
-    local dice = math.floor(SwSettings.get("charms.diceCount") + SwSettings.get("charms.dicePerFloor") * floor)
-    local sides = math.max(math.floor(SwSettings.get("charms.diceSides") + SwSettings.get("charms.diceSidesPerFloor") * floor), 2)
-    local rolled = {}
-    local sum = 0
-
-    for i = 1, dice do
-      rolled[#rolled + 1] = RNG.int(sides, chan) + 1
-    end
-
-    table.sort(rolled)
-
-    -- Drop some dice
-    local drop = SwSettings.get("charms.diceDrop")
-    local dropHigh = drop > 0
-    if dropHigh then
-      for i = 1, drop do
-        table.remove(rolled)
-      end
-    else
-      for i = -drop, -1 do
-        table.remove(rolled, 1)
-      end
-    end
-
-    for i, v in ipairs(rolled) do
-      sum = sum + v
-    end
-
-    -- Add a static amount
-    sum = sum + SwSettings.get("charms.diceAddStatic") + math.floor(SwSettings.get("charms.diceAddPerFloor") * floor)
-
-    return sum
-  elseif algo == SwEnum.CharmsAlgorithm.ADD_ONE then
+  -- This condition shouldn't fail, but I want to add more algorithms in
+  -- the future, so I'm futureproofing for that.
+  if algo == SwEnum.CharmsAlgorithm.ADD_ONE then
     local count = #(Inventory.getItemsInSlot(player, "misc"))
 
-    return NixLib.median(count, count + SwSettings.get("charms.madAdd"), SwSettings.get("charms.maxTotal"))
+    return NixLib.median(count, count + SwSettings.get("charms.maxAdd"), SwSettings.get("charms.maxTotal"))
   end
 
   return 0
@@ -218,7 +171,7 @@ local function getAllowedSlots(player)
   local oneTimeSlotsVal = SwSettings.get("slots.oneTime")
   local unlockedSlotsVal = SwSettings.get("slots.unlocked")
 
-  if not firstGen then
+  if not FirstGen then
     allowedSlotsVal = bit.band(allowedSlotsVal, bit.bnot(oneTimeSlotsVal))
     unlockedSlotsVal = bit.band(unlockedSlotsVal, bit.bnot(oneTimeSlotsVal))
   end
@@ -230,7 +183,7 @@ local function getAllowedSlots(player)
   local outFull = {}
 
   -- Now let's run down through those slots.
-  for slot in pairs(allowedSlots) do
+  for slot in Utilities.sortedPairs(allowedSlots) do
     -- We'll do some special handling for misc/holster
     if slot == "holster" then
       goto nextSlot
@@ -303,14 +256,11 @@ local function getAllowedSlots(player)
     if hudItem and hudItem.itemHolster then
       local content = hudItem.itemHolster.content
       if content == 0 then
-        print("Empty holster added")
         outEmpty[#outEmpty + 1] = {
           slotName = "holster",
           holster = hudItem
         }
       else
-        print("Filled holster added")
-        print("Holster's held entity ID: " .. content)
         -- Is this an item we can remove?
         local heldItem = Entities.getEntityByID(content)
         if heldItem then
@@ -433,10 +383,7 @@ local function selectSlots(player, emptySlots, fullSlots)
   return out
 end
 
--- This function generates a random item for a slot.
-local function generateItem(player, slot, isHolster)
-  print("Generating item for " .. slot)
-
+local function getChoiceOpts(player, slot)
   local choiceOpts = {
     -- banMask = see below,
     -- default = see below,
@@ -450,6 +397,11 @@ local function generateItem(player, slot, isHolster)
   choiceOpts.banMask = 0
   choiceOpts.player = player
 
+  -- Dynamic gold ban checking
+  if player.goldCounter and player.goldCounter.amount == 0 then
+    table.insert(choiceOpts.excludedComponents, "Switcheroo_noGiveIfBroke")
+  end
+
   if not checkFlags(SwSettings.get("slots.unlocked"), SwEnum.SlotsBitmask[slot:upper()]) then
     choiceOpts.banMask = ItemBan.Flag.GENERATE_ITEM_POOL + ItemBan.Flag.GENERATE_TRANSACTION
   end
@@ -458,10 +410,16 @@ local function generateItem(player, slot, isHolster)
     choiceOpts.banMask = bit.bor(choiceOpts.banMask, ItemBan.Flag.PICKUP_DEATH)
   end
 
+  return choiceOpts
+end
+
+-- This function generates a random item for a slot.
+local function generateItem(player, slot, isHolster)
   -- Loop through all allowed item pools
   local pools = SwSettings.get("generators")
 
   for i, v in ipairs(pools) do
+    local choiceOpts = getChoiceOpts(player, slot)
     choiceOpts.itemPool = v
     local item = ItemGeneration.choice(choiceOpts)
     if item ~= nil then
@@ -470,7 +428,10 @@ local function generateItem(player, slot, isHolster)
   end
 
   -- Unweighted
-  if #pools == 0 then
+  if SwSettings.get("generatorFallback") then
+    local choiceOpts = getChoiceOpts(player, slot)
+    choiceOpts.itemPool = nil
+    choiceOpts.chanceFunction = function() return 1 end
     local item = ItemGeneration.choice(choiceOpts)
     if item ~= nil then
       return item
@@ -543,6 +504,9 @@ local function changeItemsInSlots(player, slots)
         newItemType = oldItem.itemTransmutableFixedOutcome.target
       end
 
+      -- Debug
+      -- print(player.name .. " loses " .. oldItem.name)
+
       -- Now delete old item.
       Object.delete(oldItem)
     end
@@ -565,8 +529,12 @@ local function changeItemsInSlots(player, slots)
       end
     end
 
-    if newEntity and newEntity.Switcheroo_noTake then
-      newEntity.Switcheroo_noTake.wasGiven = true
+    if newEntity then
+      -- Debug
+      -- print(player.name .. " gains " .. newEntity.name)
+      if newEntity.Switcheroo_noTake then
+        newEntity.Switcheroo_noTake.wasGiven = true
+      end
     end
 
     if holsterSlot then
@@ -581,16 +549,20 @@ end
 -- EVENT HANDLER --
 --#region----------
 
-Event.levelLoad.add("switchBuilds", { order = "entities", sequence = 1 }, function(ev)
+Event.levelLoad.add("switchBuilds", { order = "enemySubstitutions", sequence = -1 }, function(ev)
   if not canRunHere() then goto noRun end
+
+  -- Debug
+  -- print("Starting for " .. CurrentLevel.getDepth() .. "-" .. CurrentLevel.getFloor())
 
   mapChanceSettings()
 
-  Try.catch(function()
-    for i, p in ipairs(Player.getPlayerEntities()) do
-      -- Stair immunity prevents pain-on-equip items from causing pain.
-      p.descentDamageImmunity.active = true
+  for i, p in ipairs(Player.getPlayerEntities()) do
+    -- Stair immunity prevents pain-on-equip items from causing pain.
+    local ddi = p.descentDamageImmunity.active
+    p.descentDamageImmunity.active = true
 
+    Try.catch(function()
       -- First, we need to figure out which slots *can be* selected.
       local emptySlots, fullSlots = getAllowedSlots(p)
 
@@ -604,14 +576,15 @@ Event.levelLoad.add("switchBuilds", { order = "entities", sequence = 1 }, functi
       -- And now let's deal with taking and giving items, as necessary.
       changeItemsInSlots(p, slots)
 
-      p.descentDamageImmunity.active = false
-    end
-  end)
+    end)
 
-  firstGen = false
+    p.descentDamageImmunity.active = ddi
+  end
+
+  FirstGen = false
 
   ::noRun::
-  lastFloorBoss = CurrentLevel.isBoss()
+  LastFloorBoss = CurrentLevel.isBoss()
 end)
 
 --#endregion

@@ -1,9 +1,11 @@
+local Attack    = require "necro.game.character.Attack"
 local Event     = require "necro.event.Event"
-local Utitilies = require "system.utils.Utilities"
+local Utilities = require "system.utils.Utilities"
 
-local SwEnum = require "Switcheroo.Enum"
-local SEDontTake = SwEnum.DontTake
+local SwEnum     = require "Switcheroo.Enum"
 local SwSettings = require "Switcheroo.Settings"
+
+local NixLib = require "NixLib.NixLib"
 
 local function copyToSet(table)
   local out = {}
@@ -18,48 +20,56 @@ local itemNamesNotGiven
 local itemNamesNotTakenUnlessGiven
 local itemNamesNeverTaken
 local componentsNotGiven
+local componentsNotGivenIfBroke = {}
 local componentsNotTakenUnlessGiven
 local componentsNeverTaken
+local dynamicGoldBan = false
 
 Event.entitySchemaGenerate.add("checks", { order = "components", sequence = -1 }, function()
   -- Items to not give
-  itemNamesNotGiven = {}
-  componentsNotGiven = {}
-
-  if SwSettings.get("dontGive.advanced") then
-    itemNamesNotGiven = copyToSet(SwSettings.get("dontGive.items"))
-    componentsNotGiven = copyToSet(SwSettings.get("dontGive.components"))
-  end
+  itemNamesNotGiven = copyToSet(SwSettings.get("dontGive.items"))
+  componentsNotGiven = copyToSet(SwSettings.get("dontGive.components"))
 
   if SwSettings.get("dontGive.damageUps") then
     componentsNotGiven.itemIncomingDamageMultiplier = true
     componentsNotGiven.itemIncomingDamageIncrease = true
   end
 
-  if SwSettings.get("dontGive.goldItems") then
+  if SwSettings.get("dontGive.goldItems") == SwEnum.DontGiveGold.BAN then
     componentsNotGiven.itemBanPoverty = true
+    componentsNotGiven.itemBanKillPoverty = true
+    componentsNotGiven.itemAutoCollectCurrencyOnMove = true
+  elseif SwSettings.get("dontGive.goldItems") == SwEnum.DontGiveGold.DYNAMIC then
+    componentsNotGivenIfBroke.itemBanPoverty = true
+    componentsNotGivenIfBroke.itemBanKillPoverty = true
+    componentsNotGivenIfBroke.itemAutoCollectCurrencyOnMove = true
   end
 
   if SwSettings.get("dontGive.moveAmplifiers") then
     componentsNotGiven.itemMoveAmplifier = true
+    componentsNotGiven.quirks_leaping = true
   end
 
   if SwSettings.get("dontGive.visionReducers") then
     componentsNotGiven.itemLimitTileVisionRadius = true
   end
 
-  -- Items to not take
-  itemNamesNotTakenUnlessGiven = {}
-  itemNamesNeverTaken = {}
-  componentsNotTakenUnlessGiven = {}
-  componentsNeverTaken = {}
-
-  if SwSettings.get("dontTake.advanced") then
-    itemNamesNotTakenUnlessGiven = copyToSet(SwSettings.get("dontTake.itemsUnlessGiven"))
-    itemNamesNeverTaken = copyToSet(SwSettings.get("dontTake.items"))
-    componentsNotTakenUnlessGiven = copyToSet(SwSettings.get("dontTake.componentsUnlessGiven"))
-    componentsNeverTaken = copyToSet(SwSettings.get("dontTake.components"))
+  -- using fake components here just so we have a marker without making an extra variable
+  -- so that we don't need to make a Settings Get call every item
+  -- I'll code in a special case for it in a sec
+  if SwSettings.get("dontGive.magicFood") then
+    componentsNotGiven.Switcheroo_magicFood = true
   end
+
+  if SwSettings.get("dontGive.floatingItems") then
+    componentsNotGiven.Switcheroo_levitation = true
+  end
+
+  -- Items to not take
+  itemNamesNotTakenUnlessGiven = copyToSet(SwSettings.get("dontTake.itemsUnlessGiven"))
+  itemNamesNeverTaken = copyToSet(SwSettings.get("dontTake.items"))
+  componentsNotTakenUnlessGiven = copyToSet(SwSettings.get("dontTake.componentsUnlessGiven"))
+  componentsNeverTaken = copyToSet(SwSettings.get("dontTake.components"))
 
   local NeverTake = SwEnum.DontTake.DONT_TAKE
   local TakeIfGiven = SwEnum.DontTake.TAKE_IF_GIVEN
@@ -104,9 +114,24 @@ local function addItemComponents(entity)
     end
 
     -- Is it magic food, and is magic food banned?
-    if entity.consumableHeal and entity.consumableHeal.overheal and SwSettings.get("dontGive.magicFood") then
+    if entity.consumableHeal and entity.consumableHeal.overheal and componentsNotGiven.Switcheroo_magicFood then
       entity.Switcheroo_noGive = {}
       goto noTake
+    end
+
+    -- Is it levitation, and is levitation banned?
+    if entity.itemAttackableFlags and entity.itemAttackableFlags.remove and
+        NixLib.checkFlags(entity.itemAttackableFlags.remove, Attack.Flag.TRAP) and
+        componentsNotGiven.Switcheroo_levitation then
+      entity.Switcheroo_noGive = {}
+      goto noTake
+    end
+
+    for k, v in pairs(componentsNotGivenIfBroke) do
+      if entity[k] then
+        entity.Switcheroo_noGiveIfBroke = {}
+        goto noTake
+      end
     end
   end
 
@@ -139,6 +164,15 @@ local function addItemComponents(entity)
   entity.Switcheroo_noTake = false
 
   ::endTake::
+  --
+  -- Add item pool weights
+  if entity.itemPoolSecret then
+    -- If there's an itemPoolSecret chance, we'll use that first.
+    entity.Switcheroo_itemPoolSwitcheroo = { weights = Utilities.fastCopy(entity.itemPoolSecret.weights) }
+  elseif entity.itemSlot and entity.itemSlot.name == "shield" and entity.itemPoolBlackChest then
+    -- Otherwise, is it a shield?
+    entity.Switcheroo_itemPoolSwitcheroo = { weights = Utilities.fastCopy(entity.itemPoolBlackChest.weights) }
+  end
 end
 
 local function addPlayerComponents(entity)

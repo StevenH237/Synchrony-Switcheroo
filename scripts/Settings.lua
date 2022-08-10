@@ -3,6 +3,8 @@ local GameDLC         = require "necro.game.data.resource.GameDLC"
 local Menu            = require "necro.menu.Menu"
 local Settings        = require "necro.config.Settings"
 local SettingsStorage = require "necro.config.SettingsStorage"
+local StringUtilities = require "system.utils.StringUtilities"
+local Utilities       = require "system.utils.Utilities"
 
 local PowerSettings = require "PowerSettings.PowerSettings"
 
@@ -15,7 +17,9 @@ local SwImport = require "Switcheroo.compat.Import"
 --#region------
 
 local function get(setting)
-  return PowerSettings.get("mod.Switcheroo." .. setting)
+  local val = PowerSettings.get("mod.Switcheroo." .. setting)
+  -- print("Value of " .. setting .. ": " .. Utilities.inspect(val))
+  return val
 end
 
 local function getRaw(setting, layers)
@@ -28,12 +32,46 @@ end
 -- ENABLERS --
 --#region-----
 
-local function isAdvanced()
-  return SettingsStorage.get("config.showAdvanced")
+local function both(a, b)
+  return function()
+    return a() and b()
+  end
 end
 
-local function isAmplified()
-  return GameDLC.isAmplifiedLoaded()
+local function either(a, b)
+  return function()
+    return a() or b()
+  end
+end
+
+local function anti(a)
+  return function()
+    return not a()
+  end
+end
+
+local function isAdvanced(exp)
+  if exp == nil then exp = true end
+
+  return function()
+    return PowerSettings.get("config.showAdvanced") == exp
+  end
+end
+
+local function isAmplified(exp)
+  if exp == nil then exp = true end
+
+  return function()
+    return GameDLC.isAmplifiedLoaded() == exp
+  end
+end
+
+local function isSynchrony(exp)
+  if exp == nil then exp = true end
+
+  return function()
+    return GameDLC.isSynchronyLoaded()
+  end
 end
 
 --#endregion Enablers
@@ -83,22 +121,23 @@ local function diceDropFormat(value)
 end
 
 local itemPoolNames = {
-  itemPoolChest       = "Chest",
-  itemPoolRedChest    = "Red boss chest",
-  itemPoolPurpleChest = "Purple boss chest",
-  itemPoolBlackChest  = "Black boss chest",
-  itemPoolLockedChest = "Locked chest",
-  itemPoolShop        = "Shop",
-  itemPoolLockedShop  = "Locked shop",
-  itemPoolUrn         = "Urn",
-  itemPoolSecret      = "Conjurer",
-  itemPoolFood        = "Food",
-  itemPoolHearts      = "Hearts",
-  itemPoolCrate       = "Crate",
-  itemPoolWar         = "Shrine of War",
-  itemPoolUncertainty = "Shrine of Uncertainty",
-  itemPoolEnchant     = "Enchant weapon scroll",
-  itemPoolNeed        = "Need scroll"
+  itemPoolChest                 = "Chest",
+  itemPoolRedChest              = "Red boss chest",
+  itemPoolPurpleChest           = "Purple boss chest",
+  itemPoolBlackChest            = "Black boss chest",
+  itemPoolLockedChest           = "Locked chest",
+  itemPoolShop                  = "Shop",
+  itemPoolLockedShop            = "Locked shop",
+  itemPoolUrn                   = "Urn",
+  itemPoolSecret                = "Conjurer",
+  itemPoolFood                  = "Food",
+  itemPoolHearts                = "Hearts",
+  itemPoolCrate                 = "Crate",
+  itemPoolWar                   = "Shrine of War",
+  itemPoolUncertainty           = "Shrine of Uncertainty",
+  itemPoolEnchant               = "Enchant weapon scroll",
+  itemPoolNeed                  = "Need scroll",
+  Switcheroo_itemPoolSwitcheroo = "Switcheroo default"
 }
 
 local function itemPoolFormat(value)
@@ -146,7 +185,9 @@ end
 -- SETTINGS --
 --#region-----
 
-Replacement = PowerSettings.group {
+PowerSettings.autoRegister()
+
+PowerSettings.group {
   name = "Replacement mode/chances",
   desc = "Settings for what and when should be replaced",
   id = "replacement",
@@ -155,142 +196,100 @@ Replacement = PowerSettings.group {
 
 --#region Replacement settings
 
--- Hidden setting controlling advanced mode
-Replacement_Advanced = PowerSettings.shared.bool {
-  name = "Use advanced settings",
-  desc = "Show and use the advanced settings in this section",
-  id = "replacement.advanced",
-  order = 0,
-  default = false,
-  visibleIf = function() return isAdvanced() or getRaw("replacement.advanced") end,
-  refreshOnChange = true
-}
-
---#region Replacement settings (simple)
-
-Replacement_SimpleMode = PowerSettings.shared.enum {
-  name = "Replace mode",
-  desc = "Whether to replace existing items, generate new items, or both",
-  id = "replacement.simpleMode",
-  order = 1,
-  visibleIf = function() return not get("replacement.advanced") end,
-  enum = SwEnum.ReplaceMode,
-  default = SwEnum.ReplaceMode.EVERYTHING
-}
-
-Replacement_SimpleChance = PowerSettings.shared.percent {
-  name = "Replace chance",
-  desc = "Chance to replace items in selected inventory slots",
-  id = "replacement.simpleChance",
-  order = 2,
-  visibleIf = function() return not get("replacement.advanced") end,
-  default = 1,
-  step = 0.05,
-  editAsString = true
-}
-
---#endregion Replacement settings (simple)
-
---#region Replacement settings (advanced)
-
-Replacement_AdvancedEmptyChance = PowerSettings.shared.percent {
+PowerSettings.shared.percent {
   name = "Empty slot fill chance",
   desc = "The chance an empty slot is selected and filled.",
   id = "replacement.advancedEmptyChance",
   order = 1,
-  visibleIf = function() return get("replacement.advanced") end,
   default = 1,
   step = 0.05,
   editAsString = true
 }
 
-Replacement_AdvancedEmptyMinSlots = PowerSettings.shared.number {
+PowerSettings.shared.number {
   name = "Minimum empty slots",
   desc = "The number of empty slots that must be picked (if that many exist), even if 0% chance.",
   id = "replacement.advancedEmptyMinSlots",
   order = 2,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = 0,
   minimum = 0
 }
 
-Replacement_AdvancedFullSelectChance = PowerSettings.shared.percent {
+PowerSettings.shared.percent {
   name = "Full slot selection chance",
   desc = "The chance a filled slot is selected and emptied.",
   id = "replacement.advancedFullSelectChance",
   order = 3,
-  visibleIf = function() return get("replacement.advanced") end,
   default = 1,
   step = 0.05,
   editAsString = true
 }
 
-Replacement_AdvancedFullReplaceChance = PowerSettings.shared.percent {
+PowerSettings.shared.percent {
   name = "Selected slot replacement chance",
   desc = "The chance a selected (filled) slot is replaced.",
   id = "replacement.advancedFullReplaceChance",
   order = 4,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = 1,
   step = 0.05,
   editAsString = true
 }
 
-Replacement_AdvancedFullMinSlots = PowerSettings.shared.number {
+PowerSettings.shared.number {
   name = "Minimum full slots",
   desc = "The number of full slots that must be picked (if that many exist), even if 0% chance.",
   id = "replacement.advancedFullMinSlots",
   order = 5,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = 0,
   minimum = 0
 }
 
-Replacement_AdvancedMinSlots = PowerSettings.shared.number {
+PowerSettings.shared.number {
   name = "Minimum total slots",
   desc = "The number of slots that must be picked, if it's more than the two individual minimums.",
   id = "replacement.advancedMinSlots",
   order = 6,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = 0,
   minimum = 0
 }
 
-Replacement_AdvancedMaxSlots = PowerSettings.shared.number {
+PowerSettings.shared.number {
   name = "Maximum slots",
   desc = "The highest number of slots that must be picked.",
   id = "replacement.advancedMaxSlots",
   order = 7,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = -1,
   format = maxItemsSlotsFormat
 }
 
-Replacement_AdvancedMinItems = PowerSettings.shared.number {
+PowerSettings.shared.number {
   name = "Minimum items given",
   desc = "The number of items that must be given, if that many slots are picked.",
   id = "replacement.advancedMinItems",
   order = 8,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = 0,
   minimum = 0
 }
 
-Replacement_AdvancedMaxItems = PowerSettings.shared.number {
+PowerSettings.shared.number {
   name = "Maximum items given",
   desc = "The highest number of items that must be given.",
   id = "replacement.advancedMaxItems",
   order = 9,
-  visibleIf = function() return get("replacement.advanced") end,
+  visibleIf = isAdvanced(),
   default = -1,
   format = maxItemsSlotsFormat
 }
 
---#endregion Replacement settings (advanced)
-
 --#endregion Replacement settings
 
-AllowedFloors = PowerSettings.shared.bitflag {
+PowerSettings.shared.bitflag {
   name = "Allowed floors",
   desc = "The floors on which the mod can activate.",
   id = "allowedFloors",
@@ -300,7 +299,7 @@ AllowedFloors = PowerSettings.shared.bitflag {
   presets = SwEnum.FloorPresets
 }
 
-SellItems = PowerSettings.shared.percent {
+PowerSettings.shared.percent {
   name = "Sell items",
   desc = "Price for which to sell removed items.",
   id = "sellItems",
@@ -310,7 +309,7 @@ SellItems = PowerSettings.shared.percent {
   format = sellPrice
 }
 
-Guarantees = PowerSettings.shared.bool {
+PowerSettings.shared.bool {
   name = "Honor guaranteed transmutations",
   desc = "Whether or not transmutes/transmogs with fixed outcomes should be honored.",
   id = "guarantees",
@@ -318,7 +317,7 @@ Guarantees = PowerSettings.shared.bool {
   default = true
 }
 
-DontGive = PowerSettings.group {
+PowerSettings.group {
   name = "Don't give...",
   desc = "Categories of items that shouldn't be given by the mod.",
   id = "dontGive",
@@ -327,97 +326,94 @@ DontGive = PowerSettings.group {
 
 --#region Don't Give items...
 
-DontGive_MagicFood = PowerSettings.entitySchema.bool {
+PowerSettings.entitySchema.bool {
   name = "Magic food",
-  desc = "Whether or not magic food should be banned from the item pool.",
+  desc = "Whether or not magic food should be removed from Switcheroo's item pool.",
   id = "dontGive.magicFood",
   order = 0,
   default = true,
   format = itemBanFormat
 }
 
-DontGive_MoveAmplifiers = PowerSettings.entitySchema.bool {
+PowerSettings.entitySchema.bool {
   name = "Movement amplifiers",
-  desc = "Whether or not movement amplifiers should be banned from the item pool.",
+  desc = "Whether or not movement amplifiers should be removed from Switcheroo's item pool.",
   id = "dontGive.moveAmplifiers",
   order = 1,
   default = true,
   format = itemBanFormat
 }
 
-DontGive_DamageUps = PowerSettings.entitySchema.bool {
+PowerSettings.entitySchema.bool {
   name = "Incoming-damage increasers",
-  desc = "Whether or not items that increase incoming damage should be banned from the item pool.",
+  desc = "Whether or not items that increase incoming damage should be removed from Switcheroo's item pool.",
   id = "dontGive.damageUps",
   order = 2,
   default = true,
   format = itemBanFormat
 }
 
-DontGive_GoldItems = PowerSettings.entitySchema.bool {
+PowerSettings.entitySchema.enum {
   name = "Gold-related items",
-  desc = "Whether or not items that affect the collection of gold should be banned from the item pool.",
+  desc = "Whether or not items that affect the collection of gold should be removed from Switcheroo's item pool.",
   id = "dontGive.goldItems",
   order = 3,
-  default = false,
-  format = itemBanFormat
+  enum = SwEnum.DontGiveGold,
+  default = SwEnum.DontGiveGold.DYNAMIC
 }
 
-DontGive_VisionReducers = PowerSettings.entitySchema.bool {
+PowerSettings.entitySchema.bool {
   name = "Vision-reducing items",
-  desc = "Whether or not items that reduce vision should be banned from the item pool.",
+  desc = "Whether or not items that reduce vision should be removed from Switcheroo's item pool.",
   id = "dontGive.visionReducers",
   order = 4,
+  default = true,
+  format = itemBanFormat
+}
+
+PowerSettings.entitySchema.bool {
+  name = "Floating items",
+  desc = "Whether or not items that cause levitation should be removed from Switcheroo's item pool.",
+  id = "dontGive.floatingItems",
+  order = 4.5,
   default = false,
   format = itemBanFormat
 }
 
-DontGive_DeadlyItems = PowerSettings.entitySchema.bool {
+PowerSettings.entitySchema.bool {
   name = "Deadly items",
-  desc = "Whether or not items that are only banned as \"kill player on pickup\" should be banned from the item pool.",
+  desc = "Whether or not items that are only banned as \"kill player on pickup\" should be removed from Switcheroo's item pool.",
   id = "dontGive.deadlyItems",
   order = 5,
   default = true,
   format = itemBanFormat
 }
 
-DontGive_BannedItems = PowerSettings.entitySchema.bool {
+PowerSettings.entitySchema.bool {
   name = "Banned items",
-  desc = "Whether or not items normally banned for a character should be banned from the item pool.",
+  desc = "Whether or not items normally banned for a character should be removed from Switcheroo's item pool.",
   id = "dontGive.bannedItems",
   order = 6,
   default = true,
   format = itemBanFormat
 }
 
--- Hidden setting controlling advanced mode
-DontGive_Advanced = PowerSettings.entitySchema.bool {
-  name = "Use advanced settings",
-  desc = "Show and use advanced settings in this section.",
-  id = "dontGive.advanced",
-  order = 7,
-  default = false,
-  visibleIf = function() return isAdvanced() or getRaw("dontGive.advanced") end,
-  refreshOnChange = true
-}
-
---#region Don't give advanced
-DontGive_Components = PowerSettings.entitySchema.list.component {
+PowerSettings.entitySchema.list.component {
   name = "Components",
   desc = "Specific components that shouldn't be given.",
   id = "dontGive.components",
-  order = 8,
-  visibleIf = function() return get("dontGive.advanced") end,
+  order = 7,
+  visibleIf = isAdvanced(),
   default = {},
   itemDefault = "item"
 }
 
-DontGive_Items = PowerSettings.entitySchema.list.entity {
+PowerSettings.entitySchema.list.entity {
   name = "Items",
   desc = "Specific items that shouldn't be given.",
   id = "dontGive.items",
   order = 9,
-  visibleIf = function() return get("dontGive.advanced") end,
+  visibleIf = isAdvanced(),
   default = {},
   filter = "item",
   itemDefault = "MiscPotion"
@@ -426,7 +422,7 @@ DontGive_Items = PowerSettings.entitySchema.list.entity {
 
 --#endregion Don't Give items...
 
-DontTake = PowerSettings.group {
+PowerSettings.group {
   name = "Don't take...",
   desc = "Items that shouldn't be taken by the mod.",
   id = "dontTake",
@@ -435,7 +431,7 @@ DontTake = PowerSettings.group {
 
 --#region Don't take items...
 
-DontTake_Potion = PowerSettings.entitySchema.enum {
+PowerSettings.entitySchema.enum {
   name = "Potion",
   desc = "Whether or not the Potion should be taken by the mod.",
   id = "dontTake.potion",
@@ -444,7 +440,7 @@ DontTake_Potion = PowerSettings.entitySchema.enum {
   default = SwEnum.DontTake.TAKE_IF_GIVEN
 }
 
-DontTake_LuckyCharm = PowerSettings.entitySchema.enum {
+PowerSettings.entitySchema.enum {
   name = "Lucky Charm",
   desc = "Whether or not the Lucky Charm should be taken by the mod.",
   id = "dontTake.luckyCharm",
@@ -453,7 +449,7 @@ DontTake_LuckyCharm = PowerSettings.entitySchema.enum {
   default = SwEnum.DontTake.TAKE_IF_GIVEN
 }
 
-DontTake_CrownOfGreed = PowerSettings.entitySchema.enum {
+PowerSettings.entitySchema.enum {
   name = "Crown of Greed",
   desc = "Whether or not the Crown of Greed should be taken by the mod.",
   id = "dontTake.crownOfGreed",
@@ -462,7 +458,7 @@ DontTake_CrownOfGreed = PowerSettings.entitySchema.enum {
   default = SwEnum.DontTake.TAKE_IF_GIVEN
 }
 
-DontTake_RingOfWonder = PowerSettings.entitySchema.enum {
+PowerSettings.entitySchema.enum {
   name = "Ring of Wonder",
   desc = "Whether or not the Ring of Wonder should be taken by the mod.",
   id = "dontTake.ringOfWonder",
@@ -471,7 +467,7 @@ DontTake_RingOfWonder = PowerSettings.entitySchema.enum {
   default = SwEnum.DontTake.TAKE_IF_GIVEN
 }
 
-DontTake_Locked = PowerSettings.entitySchema.enum {
+PowerSettings.entitySchema.enum {
   name = "Items locked to character",
   desc = "Whether or not items that have a ban on being taken from the character should be taken by the mod.",
   id = "dontTake.locked",
@@ -480,177 +476,154 @@ DontTake_Locked = PowerSettings.entitySchema.enum {
   default = SwEnum.DontTake.DONT_TAKE
 }
 
--- Hidden setting controlling advanced mode
-DontTake_Advanced = PowerSettings.entitySchema.bool {
-  name = "Use advanced settings",
-  desc = "Show and use the advanced settings in this section.",
-  id = "dontTake.advanced",
-  order = 5,
-  default = false,
-  visibleIf = function() return isAdvanced() or getRaw("dontTake.advanced") end,
-  refreshOnChange = true
-}
-
---#region Don't take advanced
-DontTake_UnlessGivenLabel = PowerSettings.entitySchema.label {
+PowerSettings.entitySchema.label {
   name = "Items below can be taken if, and only if, given by the mod.",
   id = "dontTake.unlessGivenLabel",
   order = 6,
-  visibleIf = function() return get("dontTake.advanced") end
+  visibleIf = isAdvanced()
 }
 
-DontTake_ItemsUnlessGiven = PowerSettings.entitySchema.list.entity {
+PowerSettings.entitySchema.list.entity {
   name = "Items",
   desc = "Specific items that shouldn't be taken (unless given).",
   id = "dontTake.itemsUnlessGiven",
   order = 7,
-  visibleIf = function() return get("dontTake.advanced") end,
+  visibleIf = isAdvanced(),
   default = {},
   filter = "item",
   itemDefault = "MiscPotion"
 }
 
-DontTake_ComponentsUnlessGiven = PowerSettings.entitySchema.list.component {
+PowerSettings.entitySchema.list.component {
   name = "Components",
   desc = "Specific components that shouldn't be taken (unless given).",
   id = "dontTake.componentsUnlessGiven",
   order = 8,
-  visibleIf = function() return get("dontTake.advanced") end,
+  visibleIf = isAdvanced(),
   default = {},
   itemDefault = "item"
 }
 
-DontTake_AlwaysLabel = PowerSettings.entitySchema.label {
+PowerSettings.entitySchema.label {
   name = "Items below cannot be taken by the mod at all.",
   id = "dontTake.alwaysLabel",
   order = 9,
-  visibleIf = function() return get("dontTake.advanced") end
+  visibleIf = isAdvanced()
 }
 
-DontTake_Items = PowerSettings.entitySchema.list.entity {
+PowerSettings.entitySchema.list.entity {
   name = "Items",
   desc = "Specific items that shouldn't be taken.",
   id = "dontTake.items",
   order = 10,
-  visibleIf = function() return get("dontTake.advanced") end,
+  visibleIf = isAdvanced(),
   default = {},
   filter = "item",
   itemDefault = "MiscPotion"
 }
 
-DontTake_Components = PowerSettings.entitySchema.list.component {
+PowerSettings.entitySchema.list.component {
   name = "Components",
   desc = "Specific components that shouldn't be taken.",
   id = "dontTake.components",
   order = 11,
-  visibleIf = function() return get("dontTake.advanced") end,
+  visibleIf = isAdvanced(),
   default = {},
   itemDefault = "item"
 }
---#endregion Don't take (advanced)
-
 --#endregion Don't take items...
 
 --#region Advanced
 
-Advanced = PowerSettings.shared.bool {
-  name = "Use advanced settings",
-  desc = "Show and use the advanced settings in the main section.",
-  id = "advanced",
-  order = 7,
-  default = false,
-  visibleIf = function() return isAdvanced() or getRaw("advanced") end,
-  refreshOnChange = true
-}
-
-Slots = PowerSettings.group {
+PowerSettings.group {
   name = "Slot settings",
   desc = "Settings that modify slots.",
   id = "slots",
   order = 8,
-  visibleIf = function() return get("advanced") end
+  visibleIf = isAdvanced()
 }
 
 --#region Slot settings
 
-Slots_Allowed = PowerSettings.shared.bitflag {
+PowerSettings.shared.bitflag {
   name = "Allowed slots",
   desc = "Which slots can the mod alter?",
   id = "slots.allowed",
   order = 0,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   flags = SwEnum.SlotsBitmask,
   presets = SwEnum.SlotPresets,
   default = SwEnum.SlotPresets.ALL_SLOTS
 }
 
-Slots_Unlocked = PowerSettings.shared.bitflag {
+PowerSettings.shared.bitflag {
   name = "Unlocked slots",
   desc = "Which slots can the mod ignore item bans within?",
   id = "slots.unlocked",
   order = 1,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   flags = SwEnum.SlotsBitmask,
   presets = SwEnum.SlotPresets,
   default = SwEnum.SlotPresets.NO_SLOTS
 }
 
-Slots_OneTime = PowerSettings.shared.bitflag {
+PowerSettings.shared.bitflag {
   name = "One-time slots",
   desc = "Which slots can the mod only alter once?",
   id = "slots.oneTime",
   order = 2,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   flags = SwEnum.SlotsBitmask,
   presets = SwEnum.SlotPresets,
   default = SwEnum.SlotPresets.NO_SLOTS
 }
 
-Slots_Capacity = PowerSettings.shared.number {
+PowerSettings.shared.number {
   name = "Slot capacity",
   desc = "How many items should be given per slot, even if it can hold more? Charms not included.",
   id = "slots.capacity",
   order = 3,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   default = 3,
   minimum = 1
 }
 
-Slots_Reduce = PowerSettings.shared.bool {
+PowerSettings.shared.bool {
   name = "Reduce over cap",
   desc = "If there are more items than the cap in a slot, should the items be downsized?",
   id = "slots.reduce",
   order = 4,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   default = true
 }
 
 --#endregion Slot settings
 
-Charms = PowerSettings.group {
+PowerSettings.group {
   name = "Charms settings",
   desc = "Settings related to the Misc (Charms) slots",
   id = "charms",
   order = 9,
-  visibleIf = function() return get("advanced") end
+  visibleIf = isAdvanced()
 }
 
 --#region Charms settings
 
-Charms_Algorithm = PowerSettings.shared.enum {
+PowerSettings.shared.enum {
   name = "Algorithm used",
   desc = "Which charms algorithm should be used?",
   id = "charms.algorithm",
   order = 0,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
+  enableIf = false,
   enum = SwEnum.CharmsAlgorithm,
-  default = SwEnum.CharmsAlgorithm.DICE_BASED,
+  default = SwEnum.CharmsAlgorithm.ADD_ONE,
   refreshOnChange = true
 }
 
 --#region Charms algorithm settings
 
-Charms_MaxAdd = PowerSettings.shared.number {
+PowerSettings.shared.number {
   name = "Maximum added charms",
   desc = "How many charms can the mod add per floor?",
   id = "charms.maxAdd",
@@ -663,7 +636,7 @@ Charms_MaxAdd = PowerSettings.shared.number {
   end
 }
 
-Charms_MaxTotal = PowerSettings.shared.number {
+PowerSettings.shared.number {
   name = "Maximum total charms",
   desc = "How many charms can you have before the mod stops adding?",
   id = "charms.maxTotal",
@@ -676,210 +649,126 @@ Charms_MaxTotal = PowerSettings.shared.number {
   end
 }
 
-Charms_DiceCount = PowerSettings.shared.number {
-  name = "Dice to roll",
-  desc = "Dice to roll for charm counts.",
-  id = "charms.diceCount",
-  order = 0,
-  lowerBound = function()
-    return math.abs(get("charms.diceDrop")) + 1
-  end,
-  maximum = 10,
-  default = 3,
-  editAsString = true,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
-Charms_DicePerFloor = PowerSettings.shared.number {
-  name = "+ Dice per floor",
-  desc = "Dice to add per completed floor.",
-  id = "charms.dicePerFloor",
-  order = 1,
-  default = 0.1,
-  step = 0.05,
-  editAsString = true,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
-Charms_DiceSides = PowerSettings.shared.number {
-  name = "Sides on dice",
-  desc = "Sides on the dice to roll for charm counts.",
-  id = "charms.diceSides",
-  order = 2,
-  minimum = 2,
-  maximum = 10,
-  default = 4,
-  editAsString = true,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
-Charms_DiceSidesPerFloor = PowerSettings.shared.number {
-  name = "+ Sides per floor",
-  desc = "Sides to add to the dice for every floor.",
-  id = "charms.diceSidesPerFloor",
-  order = 3,
-  default = 0,
-  step = 0.05,
-  editAsString = true,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
-Charms_DiceDrop = PowerSettings.shared.number {
-  name = "Dice to drop",
-  desc = "Drop some rolled dice, either the highest or lowest.",
-  id = "charms.diceDrop",
-  order = 3,
-  default = 0,
-  editAsString = true,
-  format = diceDropFormat,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
-Charms_DiceAddStatic = PowerSettings.shared.number {
-  name = "Plus",
-  desc = "Add a static number of charms to the roll.",
-  id = "charms.diceAddStatic",
-  order = 4,
-  default = 0,
-  editAsString = true,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
-Charms_DiceAddPerFloor = PowerSettings.shared.number {
-  name = "Plus per floor",
-  desc = "Add a static number of charms to the roll per floor.",
-  id = "charms.diceAddPerFloor",
-  order = 5,
-  default = 0,
-  step = 0.01,
-  editAsString = true,
-  visibleIf = function()
-    return get("advanced") and get("charms.algorithm") == SwEnum.CharmsAlgorithm.DICE_BASED
-  end
-}
-
 --#endregion Charms algorithm settings
 
 --#endregion Charms settings
 
-Defaults = PowerSettings.group {
+PowerSettings.group {
   name = "Defaults",
   desc = "Default items if generation fails or item is deleted",
   id = "defaults",
   order = 10,
-  visibleIf = function() return get("advanced") end
+  visibleIf = isAdvanced()
 }
 
 --#region Default items
 
-Defaults_Action = PowerSettings.shared.entity {
+PowerSettings.shared.entity {
   name = "Consumable item",
   desc = "Default item for consumable slot",
   id = "defaults.action",
   order = 0,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("action"),
   default = "Switcheroo_NoneItem"
 }
 
-Defaults_Shovel = PowerSettings.shared.entity {
+PowerSettings.shared.entity {
   name = "Shovel",
   desc = "Default item for shovel slot",
   id = "defaults.shovel",
   order = 1,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("shovel"),
   default = "ShovelBasic"
 }
 
-Defaults_Weapon = PowerSettings.shared.entity {
+PowerSettings.shared.entity {
   name = "Weapon",
   desc = "Default item for weapon slot",
   id = "defaults.weapon",
   order = 2,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("weapon"),
   default = "WeaponDagger"
 }
 
-Defaults_Body = PowerSettings.shared.entity {
+PowerSettings.shared.entity {
   name = "Body",
   desc = "Default item for body slot",
   id = "defaults.body",
   order = 3,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("body"),
   default = "Switcheroo_NoneItem"
 }
 
-Defaults_Head = PowerSettings.shared.entity {
+PowerSettings.shared.entity {
   name = "Head",
   desc = "Default item for head slot",
   id = "defaults.head",
   order = 4,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("head"),
   default = "Switcheroo_NoneItem"
 }
 
-Defaults_Feet = PowerSettings.shared.entity {
+PowerSettings.shared.entity {
   name = "Feet",
   desc = "Default item for feet slot",
   id = "defaults.feet",
   order = 5,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("feet"),
   default = "Switcheroo_NoneItem"
 }
 
-Defaults_Torch = PowerSettings.shared.entity {
+PowerSettings.shared.entity {
   name = "Torch",
   desc = "Default item for torch slot",
   id = "defaults.torch",
   order = 6,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("torch"),
   default = "Switcheroo_NoneItem"
 }
 
-Defaults_Ring = PowerSettings.shared.entity {
+PowerSettings.shared.entity {
   name = "Ring",
   desc = "Default item for ring slot",
   id = "defaults.ring",
   order = 7,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("ring"),
   default = "Switcheroo_NoneItem"
 }
 
-Defaults_Spell = PowerSettings.shared.entity {
+PowerSettings.shared.entity {
   name = "Spell",
   desc = "Default item for spell slots",
   id = "defaults.spell",
   order = 8,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = itemSlotFilter("spell"),
   default = "Switcheroo_NoneItem"
 }
 
-Defaults_Holster = PowerSettings.shared.entity {
+PowerSettings.shared.entity {
+  name = "Shield",
+  desc = "Default item for shield slots",
+  id = "defaults.shield",
+  order = 9,
+  visibleIf = both(isAdvanced(), isSynchrony()),
+  filter = itemSlotFilter("shield"),
+  default = "Switcheroo_NoneItem"
+}
+
+PowerSettings.shared.entity {
   name = "Holster",
   desc = "Default item for holsters",
   id = "defaults.holster",
   order = 9,
-  visibleIf = function() return get("advanced") end,
+  visibleIf = isAdvanced(),
   filter = function(ent)
     return ent.name == "Switcheroo_NoneItem" or ent.item
   end,
@@ -888,81 +777,72 @@ Defaults_Holster = PowerSettings.shared.entity {
 
 --#endregion Default items
 
-Generators = PowerSettings.shared.list.component {
+PowerSettings.shared.list.component {
   name = "Generator types",
   desc = "Which generator(s) should be used for the mod?",
   id = "generators",
   order = 11,
-  visibleIf = function() return get("advanced") end,
-  default = { "itemPoolSecret" },
+  visibleIf = isAdvanced(),
+  default = { "Switcheroo_itemPoolSwitcheroo" },
   itemDefault = "itemPoolSecret",
   filter = itemPoolComponentFilter,
   itemFormat = itemPoolFormat
 }
 
-Import = PowerSettings.group {
+PowerSettings.shared.bool {
+  name = "Fallback to unweighted generator",
+  desc = "Should the unweighted generator be used if no item pool generates an item?",
+  id = "generatorFallback",
+  order = 12,
+  visibleIf = isAdvanced(),
+  default = false
+}
+
+PowerSettings.group {
   name = "Import old settings",
   desc = "Import settings from v1 of Switcheroo.",
   id = "import",
-  order = 12
+  order = 13
 }
 
 --#region Import menu
 
-Import_Label1 = PowerSettings.shared.label {
-  name = "\3*fffThis menu option will attempt to read settings from an\3r",
-  id = "import.label1",
+local importWarning = StringUtilities.split(
+  "This menu option will attempt to read settings from an\
+older version of Switcheroo. It will overwrite any\
+settings you've currently set. After importing, you\
+should re-save your preset so that you don't have to\
+import again on future loads. (Switcheroo cannot do this\
+for you.)", "\n")
+
+PowerSettings.shared.action {
+  name = "(Scroll to bottom)",
+  desc = "Scroll down for more.",
   order = 0,
-  large = true
+  id = "import.top",
+  action = function() Menu.selectByID("mod.Switcheroo.import.confirm") end,
+  visibleIf = #importWarning > 8
 }
 
-Import_Label2 = PowerSettings.shared.label {
-  name = "\3*fffolder version of Switcheroo. It will overwrite any\3r",
-  id = "import.label2",
+PowerSettings.shared.multiLabel {
+  texts = importWarning,
+  id = "import.label",
   order = 1,
   large = true
 }
 
-Import_Label3 = PowerSettings.shared.label {
-  name = "\3*fffsettings you've currently set. After importing, you\3r",
-  id = "import.label3",
+PowerSettings.shared.label {
+  name = "",
+  id = "import.space",
   order = 2,
   large = true
 }
 
-Import_Label4 = PowerSettings.shared.label {
-  name = "\3*fffshould re-save your preset so that you don't have to\3r",
-  id = "import.label4",
-  order = 3,
-  large = true
-}
-
-Import_Label5 = PowerSettings.shared.label {
-  name = "\3*fffdon't have to import again on future loads. (Switcheroo\3r",
-  id = "import.label5",
-  order = 4,
-  large = true
-}
-
-Import_Label6 = PowerSettings.shared.label {
-  name = "\3*fffcannot do this for you.)\3r",
-  id = "import.label6",
-  order = 5,
-  large = true
-}
-
-Import_Space = PowerSettings.shared.label {
-  name = "",
-  id = "import.space",
-  order = 6,
-  large = true
-}
-
-Import_Confirm = PowerSettings.shared.action {
+PowerSettings.shared.action {
   name = "Confirm",
   desc = "Confirms importing old settings.",
   id = "import.confirm",
-  order = 10,
+  order = 3,
   action = function()
     Menu.close()
     Menu.close()
