@@ -82,62 +82,46 @@ end
 
 local function sellPrice(value)
   if value == 0 then
-    return "No"
+    return L("No", "sellPrice.no")
   else
-    return (value * 100) .. "% of purchase price (" .. (value * 200) .. "% sale price)"
+    return L.formatKey("%d%% of purchase price", "sellPrice.format", value * 100, value * 200)
   end
 end
 
 local function itemBanFormat(value)
   if value then
-    return "Ban"
+    return SwEnum.Text.BAN
   else
-    return "Don't ban"
+    return SwEnum.Text.DONT_BAN
   end
 end
 
 local function maxItemsSlotsFormat(value)
   if value == -1 then
-    return "(No limit)"
+    return L("(No limit)", "maxItemsSlotsFormat.none")
   else
     return value
   end
 end
 
-local function diceDropFormat(value)
-  if value == 1 then
-    return "Drop highest"
-  elseif value > 1 then
-    return "Drop " .. value .. " highest"
-  elseif value == -1 then
-    return "Drop lowest"
-  elseif value < -1 then
-    return "Drop " .. (-value) .. " lowest"
-  elseif value == 0 then
-    return "Drop none"
-  else
-    return "(Invalid decimal amount.)"
-  end
-end
-
 local itemPoolNames = {
-  itemPoolChest                 = "Chest",
-  itemPoolRedChest              = "Red boss chest",
-  itemPoolPurpleChest           = "Purple boss chest",
-  itemPoolBlackChest            = "Black boss chest",
-  itemPoolLockedChest           = "Locked chest",
-  itemPoolShop                  = "Shop",
-  itemPoolLockedShop            = "Locked shop",
-  itemPoolUrn                   = "Urn",
-  itemPoolSecret                = "Conjurer",
-  itemPoolFood                  = "Food",
-  itemPoolHearts                = "Hearts",
-  itemPoolCrate                 = "Crate",
-  itemPoolWar                   = "Shrine of War",
-  itemPoolUncertainty           = "Shrine of Uncertainty",
-  itemPoolEnchant               = "Enchant weapon scroll",
-  itemPoolNeed                  = "Need scroll",
-  Switcheroo_itemPoolSwitcheroo = "Switcheroo default"
+  itemPoolChest                 = L("Chest", "itemPoolNames.itemPoolChest"),
+  itemPoolRedChest              = L("Red boss chest", "itemPoolNames.itemPoolRedChest"),
+  itemPoolPurpleChest           = L("Purple boss chest", "itemPoolNames.itemPoolPurpleChest"),
+  itemPoolBlackChest            = L("Black boss chest", "itemPoolNames.itemPoolBlackChest"),
+  itemPoolLockedChest           = L("Locked chest", "itemPoolNames.itemPoolLockedChest"),
+  itemPoolShop                  = L("Shop", "itemPoolNames.itemPoolShop"),
+  itemPoolLockedShop            = L("Locked shop", "itemPoolNames.itemPoolLockedShop"),
+  itemPoolUrn                   = L("Urn", "itemPoolNames.itemPoolUrn"),
+  itemPoolSecret                = L("Conjurer", "itemPoolNames.itemPoolSecret"),
+  itemPoolFood                  = L("Food", "itemPoolNames.itemPoolFood"),
+  itemPoolHearts                = L("Hearts", "itemPoolNames.itemPoolHearts"),
+  itemPoolCrate                 = L("Crate", "itemPoolNames.itemPoolCrate"),
+  itemPoolWar                   = L("Shrine of War", "itemPoolNames.itemPoolWar"),
+  itemPoolUncertainty           = L("Shrine of Uncertainty", "itemPoolNames.itemPoolUncertainty"),
+  itemPoolEnchant               = L("Enchant weapon scroll", "itemPoolNames.itemPoolEnchant"),
+  itemPoolNeed                  = L("Need scroll", "itemPoolNames.itemPoolNeed"),
+  Switcheroo_itemPoolSwitcheroo = L("Switcheroo default", "itemPoolNames.Switcheroo_itemPoolSwitcheroo")
 }
 
 local function itemPoolFormat(value)
@@ -797,61 +781,6 @@ PowerSettings.shared.bool {
   visibleIf = isAdvanced(),
   default = false
 }
-
-PowerSettings.group {
-  name = "Import old settings",
-  desc = "Import settings from v1 of Switcheroo.",
-  id = "import",
-  order = 13
-}
-
---#region Import menu
-
-local importWarning = StringUtilities.split(
-  "This menu option will attempt to read settings from an\
-older version of Switcheroo. It will overwrite any\
-settings you've currently set. After importing, you\
-should re-save your preset so that you don't have to\
-import again on future loads. (Switcheroo cannot do this\
-for you.)", "\n")
-
-PowerSettings.shared.action {
-  name = "(Scroll to bottom)",
-  desc = "Scroll down for more.",
-  order = 0,
-  id = "import.top",
-  action = function() Menu.selectByID("mod.Switcheroo.import.confirm") end,
-  visibleIf = #importWarning > 8
-}
-
-PowerSettings.shared.multiLabel {
-  texts = importWarning,
-  id = "import.label",
-  order = 1,
-  large = true
-}
-
-PowerSettings.shared.label {
-  name = "",
-  id = "import.space",
-  order = 2,
-  large = true
-}
-
-PowerSettings.shared.action {
-  name = "Confirm",
-  desc = "Confirms importing old settings.",
-  id = "import.confirm",
-  order = 3,
-  action = function()
-    Menu.close()
-    Menu.close()
-    SwImport.ImportV1Settings()
-  end
-}
-
---#endregion Import menu
-
 --#endregion Advanced
 
 --#endregion

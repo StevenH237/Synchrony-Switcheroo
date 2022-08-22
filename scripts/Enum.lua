@@ -11,29 +11,50 @@ local function entry(num, name, data)
   return Enum.entry(num, data)
 end
 
+-----------------
+-- TRANSLATION --
+--#region--------
+local T = {
+  -- Defined here for consistency:
+  DYNAMIC = L("Dynamic ban", "dontBan.dynamic"),
+
+  -- Defined here to also be usable elsewhere in the mod:
+  DONT_BAN = L("Don't ban", "dontBan.dontBan"),
+  BAN      = L("Ban", "dontBan.ban"),
+
+  -- Defined here to always be loaded:
+  SHIELD                 = L("Shield", "slots.shield"),
+  ALL_BUT_SHIELD         = L("All slots except shield", "slotPresets.allButShield"),
+  ALL_BUT_WEAPON_SHIELD  = L("All slots except shield and weapons", "slotPresets.allButWeaponShield"),
+  ALL_BUT_HOLSTER_SHIELD = L("All slots except shield and holster", "slotPresets.allButHolsterShield")
+}
+
+module.Text = T
+--#endregion
+
 -----------
 -- ENUMS --
 --#region--
 
 module.ReplaceMode = Enum.sequence {
-  EXISTING   = entry(1, "Replace existing items"),
-  EMPTY      = entry(2, "Fill empty slots"),
-  EVERYTHING = entry(3, "Fill and replace")
+  EXISTING   = entry(1, L("Replace existing items", "replaceMode.existing")),
+  EMPTY      = entry(2, L("Fill empty slots", "replaceMode.empty")),
+  EVERYTHING = entry(3, L("Fill and replace", "replaceMode.everything"))
 }
 
 do
   local floors = {
-    EXTRA_BOSS         = entry(25, "Extra story boss"),
-    RAW_FLOOR_NUMBERS  = entry(26, "Raw floor numbers above"),
-    TRAINING_FLOORS    = entry(27, "Training floors"),
-    EXTRA_BOSS_FLOORS  = entry(29, "Add extra/custom boss floors"),
-    EXTRA_POST_BOSSES  = entry(30, "Add extra post-boss floors"),
-    EXTRA_OTHER_FLOORS = entry(31, "Add other extra floors")
+    EXTRA_BOSS         = entry(25, L("Extra story boss", "floors.extraBoss")),
+    RAW_FLOOR_NUMBERS  = entry(26, L("Raw floor numbers above", "floors.rawFloorNumbers")),
+    TRAINING_FLOORS    = entry(27, L("Training floors", "floors.trainingFloors")),
+    EXTRA_BOSS_FLOORS  = entry(29, L("Add extra/custom boss floors", "floors.extraBossFloors")),
+    EXTRA_POST_BOSSES  = entry(30, L("Add extra post-boss floors", "floors.extraPostBosses")),
+    EXTRA_OTHER_FLOORS = entry(31, L("Add other extra floors", "floors.extraOtherFloors"))
   }
 
   for d = 1, 5 do
     for f = 1, 4 do
-      floors["DEPTH_" .. d .. "_LEVEL_" .. f] = entry((d - 1) * 4 + f, "Depth " .. d .. "-" .. f)
+      floors["DEPTH_" .. d .. "_LEVEL_" .. f] = entry((d - 1) * 4 + f, L.formatKey("Depth %d-%d", "floors.depth", d, f))
     end
   end
 
@@ -41,51 +62,51 @@ do
 end
 
 module.FloorPresets = Enum.sequence {
-  ALL_FLOORS    = entry(0x750FFFFF, "All floors"),
-  FIRST_OF_ZONE = entry(0x24011111, "First of each zone"),
-  START_OF_RUN  = entry(0x04000001, "Start of run only"),
-  POST_BOSSES   = entry(0x20011110, "After every boss")
+  ALL_FLOORS    = entry(0x750FFFFF, L("All floors", "floorPresets.allFloors")),
+  FIRST_OF_ZONE = entry(0x24011111, L("First of each zone", "floorPresets.firstOfZone")),
+  START_OF_RUN  = entry(0x04000001, L("Start of run only", "floorPresets.startOfRun")),
+  POST_BOSSES   = entry(0x20011110, L("After every boss", "floorPresets.postBosses"))
 }
 
 module.DontTake = Enum.sequence {
-  TAKE          = entry(0, "Take item"),
-  TAKE_IF_GIVEN = entry(1, "Take if given by mod"),
-  DONT_TAKE     = entry(2, "Don't take item")
+  TAKE          = entry(0, L("Take item", "dontTake.take")),
+  TAKE_IF_GIVEN = entry(1, L("Take if given by mod", "dontTake.takeIfGiven")),
+  DONT_TAKE     = entry(2, L("Don't take item", "dontTake.dontTake"))
 }
 
 module.DontGiveGold = Enum.sequence {
-  DONT_BAN = entry(0, "Don't ban"),
-  BAN      = entry(1, "Ban"),
-  DYNAMIC  = entry(2, "Dynamic ban")
+  DONT_BAN = entry(0, T.DONT_BAN),
+  BAN      = entry(1, T.BAN),
+  DYNAMIC  = entry(2, T.DYNAMIC)
 }
 
 do
   local slotTable = {
-    ACTION  = entry(1, "Item"),
-    SHOVEL  = entry(2, "Shovel"),
-    WEAPON  = entry(3, "Weapon"),
-    BODY    = entry(4, "Body"),
-    HEAD    = entry(5, "Head"),
-    FEET    = entry(6, "Feet"),
-    TORCH   = entry(7, "Torch"),
-    RING    = entry(8, "Ring"),
-    MISC    = entry(9, "Misc"),
-    SPELL   = entry(10, "Spells"),
-    HOLSTER = entry(11, "Holstered weapon")
+    ACTION  = entry(1, L("Item", "slots.action")),
+    SHOVEL  = entry(2, L("Shovel", "slots.shovel")),
+    WEAPON  = entry(3, L("Weapon", "slots.weapon")),
+    BODY    = entry(4, L("Body", "slots.body")),
+    HEAD    = entry(5, L("Head", "slots.head")),
+    FEET    = entry(6, L("Feet", "slots.feet")),
+    TORCH   = entry(7, L("Torch", "slots.torch")),
+    RING    = entry(8, L("Ring", "slots.ring")),
+    MISC    = entry(9, L("Charms", "slots.misc")),
+    SPELL   = entry(10, L("Spells", "slots.spell")),
+    HOLSTER = entry(11, L("Holstered weapon", "slots.holster"))
   }
 
   local slotPresetsTable = {
-    ALL_SLOTS       = entry(0xFFF, "All slots"),
-    ALL_BUT_WEAPON  = entry(0xBFB, "All slots except weapons"),
-    ALL_BUT_HOLSTER = entry(0xBFF, "All slots except holster"),
-    NO_SLOTS        = entry(0x000, "No slots")
+    ALL_SLOTS       = entry(0xFFF, L("All slots", "slotPresets.all")),
+    ALL_BUT_WEAPON  = entry(0xBFB, L("All slots except weapons", "slotPresets.allButWeapon")),
+    ALL_BUT_HOLSTER = entry(0xBFF, L("All slots except holster", "slotPresets.allButHolster")),
+    NO_SLOTS        = entry(0x000, L("No slots", "slotPresets.noSlots"))
   }
 
   if GameDLC.isSynchronyLoaded() then
-    slotTable.SHIELD = entry(12, "Shield")
-    slotPresetsTable.ALL_BUT_SHIELD = entry(0x7FF, "All slots except shield")
-    slotPresetsTable.ALL_BUT_WEAPON_SHIELD = entry(0x3FB, "All slots except shield and weapons")
-    slotPresetsTable.ALL_BUT_HOLSTER_SHIELD = entry(0x3FF, "All slots except shield and holster")
+    slotTable.SHIELD = entry(12, T.SHIELD)
+    slotPresetsTable.ALL_BUT_SHIELD = entry(0x7FF, T.ALL_BUT_SHIELD)
+    slotPresetsTable.ALL_BUT_WEAPON_SHIELD = entry(0x3FB, T.ALL_BUT_WEAPON_SHIELD)
+    slotPresetsTable.ALL_BUT_HOLSTER_SHIELD = entry(0x3FF, T.ALL_BUT_HOLSTER_SHIELD)
   end
 
   module.Slots = Enum.sequence(slotTable)
@@ -94,7 +115,7 @@ do
 end
 
 module.CharmsAlgorithm = Enum.sequence {
-  ADD_ONE = entry(1, "Simple")
+  ADD_ONE = entry(1, L("Simple", "charmsAlgorithm.addOne"))
 }
 --#endregion
 
