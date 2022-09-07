@@ -172,7 +172,7 @@ end
 PowerSettings.autoRegister()
 
 PowerSettings.group {
-  name = "Replacement mode/chances",
+  name = "Replacement chances",
   desc = "Settings for what and when should be replaced",
   id = "replacement",
   order = 0
@@ -373,7 +373,7 @@ PowerSettings.entitySchema.bool {
   format = itemBanFormat
 }
 
-PowerSettings.entitySchema.bool {
+PowerSettings.shared.bool {
   name = "Banned items",
   desc = "Whether or not items normally banned for a character should be removed from Switcheroo's item pool.",
   id = "dontGive.bannedItems",
@@ -402,8 +402,6 @@ PowerSettings.entitySchema.list.entity {
   filter = "item",
   itemDefault = "MiscPotion"
 }
---#endregion Don't give advanced
-
 --#endregion Don't Give items...
 
 PowerSettings.group {
@@ -637,11 +635,22 @@ PowerSettings.shared.number {
 
 --#endregion Charms settings
 
+PowerSettings.shared.group {
+  name = "Bomb settings",
+  desc = "Change how Switcheroo plays with bombs",
+  id = "bomb",
+  order = 10,
+  visibleIf = isAdvanced()
+}
+
+--#region Bomb settings
+--#endregion
+
 PowerSettings.group {
   name = "Defaults",
   desc = "Default items if generation fails or item is deleted",
   id = "defaults",
-  order = 10,
+  order = 11,
   visibleIf = isAdvanced()
 }
 
@@ -765,7 +774,7 @@ PowerSettings.shared.list.component {
   name = "Generator types",
   desc = "Which generator(s) should be used for the mod?",
   id = "generators",
-  order = 11,
+  order = 12,
   visibleIf = isAdvanced(),
   default = { "Switcheroo_itemPoolSwitcheroo" },
   itemDefault = "itemPoolSecret",
@@ -777,7 +786,7 @@ PowerSettings.shared.bool {
   name = "Fallback to unweighted generator",
   desc = "Should the unweighted generator be used if no item pool generates an item?",
   id = "generatorFallback",
-  order = 12,
+  order = 13,
   visibleIf = isAdvanced(),
   default = false
 }
