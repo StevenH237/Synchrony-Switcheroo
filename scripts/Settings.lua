@@ -6,6 +6,8 @@ local SettingsStorage = require "necro.config.SettingsStorage"
 local StringUtilities = require "system.utils.StringUtilities"
 local Utilities       = require "system.utils.Utilities"
 
+local Text = require "Switcheroo.i18n.Text"
+
 local PowerSettings = require "PowerSettings.PowerSettings"
 
 local SwEnum   = require "Switcheroo.Enum"
@@ -82,23 +84,23 @@ end
 
 local function sellPrice(value)
   if value == 0 then
-    return L("No", "sellPrice.no")
+    return Text.Formats.Sell.No
   else
-    return L.formatKey("%d%% of purchase price", "sellPrice.format", value * 100, value * 200)
+    return Text.Formats.Sell.Yes(value * 100)
   end
 end
 
 local function itemBanFormat(value)
   if value then
-    return SwEnum.Text.BAN
+    return Text.Bans.Giving.DontAllow
   else
-    return SwEnum.Text.DONT_BAN
+    return Text.Bans.Giving.Allow
   end
 end
 
 local function maxItemsSlotsFormat(value)
   if value == -1 then
-    return L("(No limit)", "maxItemsSlotsFormat.none")
+    return Text.Formats.NoLimit
   else
     return value
   end
@@ -125,11 +127,11 @@ local itemPoolNames = {
 }
 
 local function itemPoolFormat(value)
-  if itemPoolNames[value] then
+  if Text.ItemPools[value] then
     if isAdvanced() then
-      return itemPoolNames[value] .. " (" .. value .. ")"
+      return Text.Formats.ItemPoolAdvanced(Text.ItemPools[value], value)
     else
-      return itemPoolNames[value]
+      return Text.ItemPools[value]
     end
   else
     return value
@@ -383,7 +385,7 @@ PowerSettings.shared.bool {
 }
 
 PowerSettings.entitySchema.list.component {
-  name = "Components",
+  name = "Don't give components",
   desc = "Specific components that shouldn't be given.",
   id = "dontGive.components",
   order = 7,
@@ -393,7 +395,7 @@ PowerSettings.entitySchema.list.component {
 }
 
 PowerSettings.entitySchema.list.entity {
-  name = "Items",
+  name = "Don't give items",
   desc = "Specific items that shouldn't be given.",
   id = "dontGive.items",
   order = 9,
@@ -466,7 +468,7 @@ PowerSettings.entitySchema.label {
 }
 
 PowerSettings.entitySchema.list.entity {
-  name = "Items",
+  name = "Don't take items unless given",
   desc = "Specific items that shouldn't be taken (unless given).",
   id = "dontTake.itemsUnlessGiven",
   order = 7,
@@ -477,7 +479,7 @@ PowerSettings.entitySchema.list.entity {
 }
 
 PowerSettings.entitySchema.list.component {
-  name = "Components",
+  name = "Don't take components unless given",
   desc = "Specific components that shouldn't be taken (unless given).",
   id = "dontTake.componentsUnlessGiven",
   order = 8,
@@ -494,7 +496,7 @@ PowerSettings.entitySchema.label {
 }
 
 PowerSettings.entitySchema.list.entity {
-  name = "Items",
+  name = "Don't take items",
   desc = "Specific items that shouldn't be taken.",
   id = "dontTake.items",
   order = 10,
@@ -505,7 +507,7 @@ PowerSettings.entitySchema.list.entity {
 }
 
 PowerSettings.entitySchema.list.component {
-  name = "Components",
+  name = "Don't take components",
   desc = "Specific components that shouldn't be taken.",
   id = "dontTake.components",
   order = 11,
@@ -657,8 +659,8 @@ PowerSettings.group {
 --#region Default items
 
 PowerSettings.shared.entity {
-  name = "Consumable item",
-  desc = "Default item for consumable slot",
+  name = Text.Slots.Names.Action,
+  desc = Text.Settings.DefaultItemDesc(Text.Func.NounCase(Text.Slots.Names.Action)),
   id = "defaults.action",
   order = 0,
   visibleIf = isAdvanced(),
@@ -667,8 +669,8 @@ PowerSettings.shared.entity {
 }
 
 PowerSettings.shared.entity {
-  name = "Shovel",
-  desc = "Default item for shovel slot",
+  name = Text.Slots.Names.Shovel,
+  desc = Text.Settings.DefaultItemDesc(Text.Func.NounCase(Text.Slots.Names.Shovel)),
   id = "defaults.shovel",
   order = 1,
   visibleIf = isAdvanced(),
@@ -677,8 +679,8 @@ PowerSettings.shared.entity {
 }
 
 PowerSettings.shared.entity {
-  name = "Weapon",
-  desc = "Default item for weapon slot",
+  name = Text.Slots.Names.Weapon,
+  desc = Text.Settings.DefaultItemDesc(Text.Func.NounCase(Text.Slots.Names.Weapon)),
   id = "defaults.weapon",
   order = 2,
   visibleIf = isAdvanced(),
@@ -687,8 +689,8 @@ PowerSettings.shared.entity {
 }
 
 PowerSettings.shared.entity {
-  name = "Body",
-  desc = "Default item for body slot",
+  name = Text.Slots.Names.Body,
+  desc = Text.Settings.DefaultItemDesc(Text.Func.NounCase(Text.Slots.Names.Body)),
   id = "defaults.body",
   order = 3,
   visibleIf = isAdvanced(),
@@ -697,8 +699,8 @@ PowerSettings.shared.entity {
 }
 
 PowerSettings.shared.entity {
-  name = "Head",
-  desc = "Default item for head slot",
+  name = Text.Slots.Names.Head,
+  desc = Text.Settings.DefaultItemDesc(Text.Func.NounCase(Text.Slots.Names.Head)),
   id = "defaults.head",
   order = 4,
   visibleIf = isAdvanced(),
@@ -707,8 +709,8 @@ PowerSettings.shared.entity {
 }
 
 PowerSettings.shared.entity {
-  name = "Feet",
-  desc = "Default item for feet slot",
+  name = Text.Slots.Names.Feet,
+  desc = Text.Settings.DefaultItemDesc(Text.Func.NounCase(Text.Slots.Names.Feet)),
   id = "defaults.feet",
   order = 5,
   visibleIf = isAdvanced(),
@@ -717,8 +719,8 @@ PowerSettings.shared.entity {
 }
 
 PowerSettings.shared.entity {
-  name = "Torch",
-  desc = "Default item for torch slot",
+  name = Text.Slots.Names.Torch,
+  desc = Text.Settings.DefaultItemDesc(Text.Func.NounCase(Text.Slots.Names.Torch)),
   id = "defaults.torch",
   order = 6,
   visibleIf = isAdvanced(),
@@ -727,8 +729,8 @@ PowerSettings.shared.entity {
 }
 
 PowerSettings.shared.entity {
-  name = "Ring",
-  desc = "Default item for ring slot",
+  name = Text.Slots.Names.Ring,
+  desc = Text.Settings.DefaultItemDesc(Text.Func.NounCase(Text.Slots.Names.Ring)),
   id = "defaults.ring",
   order = 7,
   visibleIf = isAdvanced(),
@@ -737,8 +739,8 @@ PowerSettings.shared.entity {
 }
 
 PowerSettings.shared.entity {
-  name = "Spell",
-  desc = "Default item for spell slots",
+  name = Text.Slots.Names.Spell,
+  desc = Text.Settings.DefaultItemDesc(Text.Func.NounCase(Text.Slots.Names.Spell)),
   id = "defaults.spell",
   order = 8,
   visibleIf = isAdvanced(),
@@ -747,8 +749,8 @@ PowerSettings.shared.entity {
 }
 
 PowerSettings.shared.entity {
-  name = "Shield",
-  desc = "Default item for shield slots",
+  name = Text.Slots.Names.Shield,
+  desc = Text.Settings.DefaultItemDesc(Text.Func.NounCase(Text.Slots.Names.Shield)),
   id = "defaults.shield",
   order = 9,
   visibleIf = both(isAdvanced(), isSynchrony()),
@@ -757,7 +759,7 @@ PowerSettings.shared.entity {
 }
 
 PowerSettings.shared.entity {
-  name = "Holster",
+  name = Text.Slots.Names.Holster,
   desc = "Default item for holsters",
   id = "defaults.holster",
   order = 9,
