@@ -90,8 +90,8 @@ do
     slotPresetsTable.ALL_BUT_HOLSTER_SHIELD = entry(0x3FF, Text.Slots.Presets.AllButHolsterShield)
   end
 
-  module.Slots = Enum.sequence(slotTable)
-  module.SlotsBitmask = Enum.bitmask(slotTable)
+  module.Slots = Enum.sequence(Utilities.fastCopy(slotTable))
+  module.SlotsBitmask = Enum.bitmask(Utilities.fastCopy(slotTable))
   module.SlotPresets = Enum.sequence(slotPresetsTable)
 end
 
