@@ -1,7 +1,7 @@
 {
 	"namespace": "Switcheroo",
 	"displayName": "Switcheroo",
-	"version": "3.2.1",
+	"version": "3.2.2",
 	"synchronyVersion": "3.1.0",
 	"description": "Changes your build throughout the run!",
 	"author": "Nixill",
@@ -11,10 +11,10 @@
 	"banner": "SwitcherooBanner.png",
 	"tags": [],
 	"name": "Switcheroo_io_2237106",
-	"changelog": "Dependency patch",
+	"changelog": "Fix low% with thrown items",
 	"homepageURL": "https://mod.io/g/crypt/m/Switcheroo",
 	"modioID": "2237106",
 	"modioUserID": 12939888,
-	"pendingVersion": "3.2.1",
+	"pendingVersion": "3.2.2",
 	"visibility": 0
 }

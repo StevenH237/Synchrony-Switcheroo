@@ -535,6 +535,8 @@ local function changeItemsInSlots(player, slots)
       if newEntity.Switcheroo_noTake then
         newEntity.Switcheroo_noTake.wasGiven = true
       end
+
+      newEntity.itemNegateLowPercent.active = false
     end
 
     if holsterSlot then
