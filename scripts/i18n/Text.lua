@@ -16,12 +16,35 @@ return {
     Simple = L("Simple", "charmsAlgorithms.simple")
   },
   Floors = {
-    DepthLevel = function(...) return L.formatKey("Depth %d-%d", "floors.depth", ...) end,
+    DepthLevel = function(...) return L.formatKey("%s floor (%d-%d)", "floors.depth", ...) end,
     ExtraBossFloors = L("Add extra/custom boss floors", "floors.extraBoss"),
     ExtraOtherFloors = L("Add other extra floors", "floors.extraOther"),
     ExtraPostBosses = L("Add extra post-boss floors", "floors.extraPostBosses"),
     ExtraStoryBoss = L("Extra story boss", "floors.extraStoryBoss"),
-    RawFloorNumbers = L("Raw floor numbers above", "floors.rawNumbers"),
+    Ordinal = {
+      L("1st", "floors.ordinal.1"),
+      L("2nd", "floors.ordinal.2"),
+      L("3rd", "floors.ordinal.3"),
+      L("4th", "floors.ordinal.4"),
+      L("5th", "floors.ordinal.5"),
+      L("6th", "floors.ordinal.6"),
+      L("7th", "floors.ordinal.7"),
+      L("8th", "floors.ordinal.8"),
+      L("9th", "floors.ordinal.9"),
+      L("10th", "floors.ordinal.10"),
+      L("11th", "floors.ordinal.11"),
+      L("12th", "floors.ordinal.12"),
+      L("13th", "floors.ordinal.13"),
+      L("14th", "floors.ordinal.14"),
+      L("15th", "floors.ordinal.15"),
+      L("16th", "floors.ordinal.16"),
+      L("17th", "floors.ordinal.17"),
+      L("18th", "floors.ordinal.18"),
+      L("19th", "floors.ordinal.19"),
+      L("20th", "floors.ordinal.20"),
+      L("21st", "floors.ordinal.21")
+    },
+    RawFloorNumbers = L("Custom dungeons use floor numbers", "floors.rawNumbers"),
     TrainingFloors = L("Training floors", "floors.trainingFloors"),
   },
   FloorPresets = {
@@ -35,7 +58,7 @@ return {
     NoLimit = L("(No limit)", "formats.noLimit"),
     Sell = {
       No = L("No", "formats.sell.no"),
-      Yes = function(...) return L.formatKey("%d%% of purchase price", "formats.sell.yes", ...) end
+      Yes = function(...) return L.formatKey("%g%% of purchase price", "formats.sell.yes", ...) end
     }
   },
   Func = {

@@ -1,0 +1,1 @@
+The documentation has been moved! You can now view it [here on GitHub](https://github.com/StevenH237/Synchrony-ModDocs/blob/main/Switcheroo/Switcheroo.md).

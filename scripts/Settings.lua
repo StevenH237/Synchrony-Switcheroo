@@ -106,26 +106,6 @@ local function maxItemsSlotsFormat(value)
   end
 end
 
-local itemPoolNames = {
-  itemPoolChest                 = L("Chest", "itemPoolNames.itemPoolChest"),
-  itemPoolRedChest              = L("Red boss chest", "itemPoolNames.itemPoolRedChest"),
-  itemPoolPurpleChest           = L("Purple boss chest", "itemPoolNames.itemPoolPurpleChest"),
-  itemPoolBlackChest            = L("Black boss chest", "itemPoolNames.itemPoolBlackChest"),
-  itemPoolLockedChest           = L("Locked chest", "itemPoolNames.itemPoolLockedChest"),
-  itemPoolShop                  = L("Shop", "itemPoolNames.itemPoolShop"),
-  itemPoolLockedShop            = L("Locked shop", "itemPoolNames.itemPoolLockedShop"),
-  itemPoolUrn                   = L("Urn", "itemPoolNames.itemPoolUrn"),
-  itemPoolSecret                = L("Conjurer", "itemPoolNames.itemPoolSecret"),
-  itemPoolFood                  = L("Food", "itemPoolNames.itemPoolFood"),
-  itemPoolHearts                = L("Hearts", "itemPoolNames.itemPoolHearts"),
-  itemPoolCrate                 = L("Crate", "itemPoolNames.itemPoolCrate"),
-  itemPoolWar                   = L("Shrine of War", "itemPoolNames.itemPoolWar"),
-  itemPoolUncertainty           = L("Shrine of Uncertainty", "itemPoolNames.itemPoolUncertainty"),
-  itemPoolEnchant               = L("Enchant weapon scroll", "itemPoolNames.itemPoolEnchant"),
-  itemPoolNeed                  = L("Need scroll", "itemPoolNames.itemPoolNeed"),
-  Switcheroo_itemPoolSwitcheroo = L("Switcheroo default", "itemPoolNames.Switcheroo_itemPoolSwitcheroo")
-}
-
 local function itemPoolFormat(value)
   if Text.ItemPools[value] then
     if isAdvanced() then

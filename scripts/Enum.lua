@@ -35,7 +35,8 @@ do
 
   for d = 1, 5 do
     for f = 1, 4 do
-      floors["DEPTH_" .. d .. "_LEVEL_" .. f] = entry((d - 1) * 4 + f, Text.Floors.DepthLevel(d, f))
+      local i = (d - 1) * 4 + f
+      floors["DEPTH_" .. d .. "_LEVEL_" .. f] = entry(i, Text.Floors.DepthLevel(Text.Floors.Ordinal[i], d, f))
     end
   end
 
