@@ -137,6 +137,10 @@ end
 
 -- Returns the RNG channel for a given player. If it doesn't exist yet, makes one.
 local function channel(player)
+  if player.Sync_possessable then
+    player = Entities.getEntityByID(player.Sync_possessable.possessor)
+  end
+
   local ent = player.Switcheroo_randomizer.entity
 
   if ent == nil then

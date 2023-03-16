@@ -184,7 +184,7 @@ Event.entitySchemaLoadEntity.add("addComponents", { order = "overrides" }, funct
 
   if entity.item then
     addItemComponents(entity)
-  elseif entity.playableCharacter then
+  elseif entity.controllable and not entity.Sync_possessable then
     addPlayerComponents(entity)
   end
 end)
