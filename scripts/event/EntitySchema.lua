@@ -55,6 +55,10 @@ Event.entitySchemaGenerate.add("checks", { order = "components", sequence = -1 }
     componentsNotGiven.itemLimitTileVisionRadius = true
   end
 
+  if SwSettings.get("dontGive.rhythmIgnoringItems") then
+    componentsNotGiven.consumableIgnoreRhythmTemporarily = true
+  end
+
   -- using fake components here just so we have a marker without making an extra variable
   -- so that we don't need to make a Settings Get call every item
   -- I'll code in a special case for it in a sec
@@ -64,6 +68,14 @@ Event.entitySchemaGenerate.add("checks", { order = "components", sequence = -1 }
 
   if SwSettings.get("dontGive.floatingItems") then
     componentsNotGiven.Switcheroo_levitation = true
+  end
+
+  if SwSettings.get("dontGive.breakableWeapons") then
+    componentsNotGiven.Switcheroo_breakableWeapons = true
+  end
+
+  if SwSettings.get("dontGive.breakableShovels") then
+    componentsNotGiven.Switcheroo_breakableShovels = true
   end
 
   -- Items to not take
@@ -98,6 +110,12 @@ Event.entitySchemaGenerate.add("checks", { order = "components", sequence = -1 }
   elseif SwSettings.get("dontTake.ringOfWonder") == TakeIfGiven then
     itemNamesNotTakenUnlessGiven.RingWonder = true
   end
+
+  if SwSettings.get("dontTake.crystalShovel") == NeverTake then
+    itemNamesNeverTaken.ShovelCrystal = true
+  elseif SwSettings.get("dontTake.crystalShovel") == TakeIfGiven then
+    itemNamesNotTakenUnlessGiven.ShovelCrystal = true
+  end
 end)
 
 local function addItemComponents(entity)
@@ -124,6 +142,18 @@ local function addItemComponents(entity)
     if entity.itemAttackableFlags and entity.itemAttackableFlags.remove and
         NixLib.checkFlags(entity.itemAttackableFlags.remove, Attack.Flag.TRAP) and
         componentsNotGiven.Switcheroo_levitation then
+      entity.Switcheroo_noGive = {}
+      goto noTake
+    end
+
+    -- Is it a breakable shovel, and are those banned?
+    if entity.shovel and entity.itemConsumeOnIncomingDamage and componentsNotGiven.Switcheroo_breakableShovels then
+      entity.Switcheroo_noGive = {}
+      goto noTake
+    end
+
+    -- Is it a breakable weapon, and are those banned?
+    if entity.weapon and entity.itemConsumeOnIncomingDamage and componentsNotGiven.Switcheroo_breakableWeapons then
       entity.Switcheroo_noGive = {}
       goto noTake
     end

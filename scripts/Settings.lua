@@ -341,8 +341,35 @@ PowerSettings.entitySchema.bool {
   name = "Floating items",
   desc = "Whether or not items that cause levitation should be removed from Switcheroo's item pool.",
   id = "dontGive.floatingItems",
-  order = 4.5,
+  order = 5,
   default = false,
+  format = itemBanFormat
+}
+
+PowerSettings.entitySchema.bool {
+  name = "Rhythm-ignoring items",
+  desc = "Whether or not items that allow temporarily ignoring the rhythm should be removed from Switcheroo's item pool.",
+  id = "dontGive.rhythmIgnoringItems",
+  order = 6,
+  default = true,
+  format = itemBanFormat
+}
+
+PowerSettings.entitySchema.bool {
+  name = "Breakable weapons",
+  desc = "Whether or not breakable weapons (such as glass) should be removed from Switcheroo's item pool.",
+  id = "dontGive.breakableWeapons",
+  order = 7,
+  default = true,
+  format = itemBanFormat
+}
+
+PowerSettings.entitySchema.bool {
+  name = "Breakable shovels",
+  desc = "Whether or not breakable shovels (such as glass) should be removed from Switcheroo's item pool.",
+  id = "dontGive.breakableShovels",
+  order = 8,
+  default = true,
   format = itemBanFormat
 }
 
@@ -350,7 +377,7 @@ PowerSettings.entitySchema.bool {
   name = "Deadly items",
   desc = "Whether or not items that are only banned as \"kill player on pickup\" should be removed from Switcheroo's item pool.",
   id = "dontGive.deadlyItems",
-  order = 5,
+  order = 100,
   default = true,
   format = itemBanFormat
 }
@@ -359,7 +386,7 @@ PowerSettings.shared.bool {
   name = "Banned items",
   desc = "Whether or not items normally banned for a character should be removed from Switcheroo's item pool.",
   id = "dontGive.bannedItems",
-  order = 6,
+  order = 101,
   default = true,
   format = itemBanFormat
 }
@@ -368,7 +395,7 @@ PowerSettings.entitySchema.list.component {
   name = "Don't give components",
   desc = "Specific components that shouldn't be given.",
   id = "dontGive.components",
-  order = 7,
+  order = 102,
   visibleIf = isAdvanced(),
   default = {},
   itemDefault = "item"
@@ -378,7 +405,7 @@ PowerSettings.entitySchema.list.entity {
   name = "Don't give items",
   desc = "Specific items that shouldn't be given.",
   id = "dontGive.items",
-  order = 9,
+  order = 103,
   visibleIf = isAdvanced(),
   default = {},
   filter = "item",
@@ -432,10 +459,19 @@ PowerSettings.entitySchema.enum {
 }
 
 PowerSettings.entitySchema.enum {
+  name = "Crystal Shovel",
+  desc = "Whether or not the Crystal Shovel should be taken by the mod.",
+  id = "dontTake.crystalShovel",
+  order = 4,
+  enum = SwEnum.DontTake,
+  default = SwEnum.DontTake.TAKE_IF_GIVEN
+}
+
+PowerSettings.entitySchema.enum {
   name = "Items locked to character",
   desc = "Whether or not items that have a ban on being taken from the character should be taken by the mod.",
   id = "dontTake.locked",
-  order = 4,
+  order = 100,
   enum = SwEnum.DontTake,
   default = SwEnum.DontTake.DONT_TAKE
 }
@@ -443,7 +479,7 @@ PowerSettings.entitySchema.enum {
 PowerSettings.entitySchema.label {
   name = "Items below can be taken if, and only if, given by the mod.",
   id = "dontTake.unlessGivenLabel",
-  order = 6,
+  order = 101,
   visibleIf = isAdvanced()
 }
 
@@ -451,7 +487,7 @@ PowerSettings.entitySchema.list.entity {
   name = "Don't take items unless given",
   desc = "Specific items that shouldn't be taken (unless given).",
   id = "dontTake.itemsUnlessGiven",
-  order = 7,
+  order = 102,
   visibleIf = isAdvanced(),
   default = {},
   filter = "item",
@@ -462,7 +498,7 @@ PowerSettings.entitySchema.list.component {
   name = "Don't take components unless given",
   desc = "Specific components that shouldn't be taken (unless given).",
   id = "dontTake.componentsUnlessGiven",
-  order = 8,
+  order = 103,
   visibleIf = isAdvanced(),
   default = {},
   itemDefault = "item"
@@ -471,7 +507,7 @@ PowerSettings.entitySchema.list.component {
 PowerSettings.entitySchema.label {
   name = "Items below cannot be taken by the mod at all.",
   id = "dontTake.alwaysLabel",
-  order = 9,
+  order = 104,
   visibleIf = isAdvanced()
 }
 
@@ -479,7 +515,7 @@ PowerSettings.entitySchema.list.entity {
   name = "Don't take items",
   desc = "Specific items that shouldn't be taken.",
   id = "dontTake.items",
-  order = 10,
+  order = 105,
   visibleIf = isAdvanced(),
   default = {},
   filter = "item",
@@ -490,7 +526,7 @@ PowerSettings.entitySchema.list.component {
   name = "Don't take components",
   desc = "Specific components that shouldn't be taken.",
   id = "dontTake.components",
-  order = 11,
+  order = 106,
   visibleIf = isAdvanced(),
   default = {},
   itemDefault = "item"
