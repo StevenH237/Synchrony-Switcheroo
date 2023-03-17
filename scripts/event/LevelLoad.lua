@@ -101,10 +101,8 @@ local function canRunHere()
     goto customDungeonRules
   end
 
-  -- Are we on the final floor, being the fifth floor of a zone, *and* it's a boss floor?
-  if CurrentLevel.getFloor() == 5
-      and CurrentLevel.getNumber() == CurrentLevel.getDungeonLength()
-      and CurrentLevel.isBoss() then
+  -- Are we on the fifth or greater floor of a zone, and it's a boss floor?
+  if CurrentLevel.getFloor() >= 5 and CurrentLevel.isBoss() then
     return checkFlags(setting, SwEnum.AllowedFloors.EXTRA_BOSS)
   end
 
