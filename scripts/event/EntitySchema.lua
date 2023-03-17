@@ -1,5 +1,6 @@
 local Attack    = require "necro.game.character.Attack"
 local Event     = require "necro.event.Event"
+local GameDLC   = require "necro.game.data.resource.GameDLC"
 local Utilities = require "system.utils.Utilities"
 
 local SwEnum     = require "Switcheroo.Enum"
@@ -179,12 +180,18 @@ local function addPlayerComponents(entity)
   entity.Switcheroo_randomizer = {}
 end
 
-Event.entitySchemaLoadEntity.add("addComponents", { order = "overrides" }, function(ev)
+local function addSoulLinkComponents(entity)
+  entity.Switcheroo_soulLinkItemGen = {}
+end
+
+Event.entitySchemaLoadEntity.add("addComponents", { order = "overrides", sequence = 2 }, function(ev)
   local entity = ev.entity
 
-  if entity.item then
+  if entity.soulLinkInventory then
+    addSoulLinkComponents(entity)
+  elseif entity.item then
     addItemComponents(entity)
-  elseif entity.controllable and not entity.Sync_possessable then
+  elseif entity.controllable and not (GameDLC.isSynchronyLoaded() and entity.Sync_possessable) then
     addPlayerComponents(entity)
   end
 end)

@@ -99,6 +99,12 @@ do
   module.SlotsBitmask = Enum.bitmask(Utilities.fastCopy(slotTable))
   module.SlotPresets = Enum.sequence(slotPresetsTable)
 end
+
+module.SlotMark = Enum.sequence {
+  OPEN = 1,
+  TO_CLOSE = 2,
+  CLOSED = 3
+}
 --#endregion
 
 return module

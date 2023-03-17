@@ -13,6 +13,9 @@ Components.register {
   },
   Switcheroo_itemPoolSwitcheroo = {
     Components.constant.table("weights", { 1 })
+  },
+  Switcheroo_soulLinkItemGen = {
+    Components.field.table("slots", {})
   }
 }
 

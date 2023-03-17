@@ -1,6 +1,8 @@
+---@diagnostic disable: need-check-nil
 local CurrentLevel   = require "necro.game.level.CurrentLevel"
 local Entities       = require "system.game.Entities"
 local Event          = require "necro.event.Event"
+local GameDLC        = require "necro.game.data.resource.GameDLC"
 local GameSession    = require "necro.client.GameSession"
 local Inventory      = require "necro.game.item.Inventory"
 local ItemBan        = require "necro.game.item.ItemBan"
@@ -124,6 +126,64 @@ local function canRunHere()
   end
 end
 
+-- Resets soul link slot markers.
+local function resetSoulLinkMarkers()
+  -- Iterate over all existing soul link slot markers
+  for ent in Entities.entitiesWithComponents({ "Switcheroo_soulLinkItemGen" }) do
+    local slots = {}
+    for slot in pairs(ent.soulLinkInventory.slots) do
+      slots[slot] = SwEnum.SlotMark.OPEN
+    end
+    ent.Switcheroo_soulLinkItemGen.slots = slots
+  end
+end
+
+-- Gets the topmost soul link from a given soul link.
+local function getTopSoulLink(ent)
+  -- Only soulLink entities are allowed here.
+  if not ent.soulLink then
+    return nil
+  end
+
+  -- A soulLink without a target is itself the topmost soul link.
+  if ent.soulLink.target == nil or ent.soulLink.target == 0 then
+    return ent
+  end
+
+  -- Otherwise, check for this target's target.
+  return getTopSoulLink(Entities.getEntityByID(ent.soulLink.target))
+end
+
+-- Gets all of the top-level soul link objects of which a given entity is a part.
+local function getSoulLinks(ent)
+  -- Soul links are part of an entity's equipment.
+  if not ent.equipment then return nil end
+
+  local links = {}
+  -- For all entities in the equipment...
+  for i, v in ipairs(Utilities.map(ent.equipment.items, Entities.getEntityByID)) do
+    if v.soulLink then
+      table.insert(links, getTopSoulLink(v))
+    end
+  end
+
+  return links
+end
+
+local function getCombinedMarkers(links)
+  local slots = {}
+  for i, marker in ipairs(links) do
+    for slot, value in pairs(marker.Switcheroo_soulLinkItemGen.slots) do
+      if value == SwEnum.SlotMark.CLOSED then
+        slots[slot] = SwEnum.SlotMark.CLOSED
+      elseif slots[slot] ~= SwEnum.SlotMark.CLOSED then
+        slots[slot] = value
+      end
+    end
+  end
+  return slots
+end
+
 -- Converts a bitmask to its individual components as keys
 local function slotsToSet(enum, value)
   local ret = {}
@@ -137,7 +197,7 @@ end
 
 -- Returns the RNG channel for a given player. If it doesn't exist yet, makes one.
 local function channel(player)
-  if player.Sync_possessable then
+  if GameDLC.isSynchronyLoaded() and player.Sync_possessable then
     player = Entities.getEntityByID(player.Sync_possessable.possessor)
   end
 
@@ -168,6 +228,17 @@ local function getCharmCount(player)
   return 0
 end
 
+-- Closes TO_CLOSE slots in soul link item gen markers.
+local function closeSoulLinkSlots(links, slots)
+  for i, link in ipairs(links) do
+    for slot, val in pairs(slots) do
+      if val == SwEnum.SlotMark.TO_CLOSE then
+        link.Switcheroo_soulLinkItemGen.slots[slot] = SwEnum.SlotMark.CLOSED
+      end
+    end
+  end
+end
+
 -- Returns the allowed slots for changes
 local function getAllowedSlots(player)
   -- Start with a list of the slots we can use
@@ -186,6 +257,11 @@ local function getAllowedSlots(player)
   local outEmpty = {}
   local outFull = {}
 
+  -- Soul links! The slots may have already changed externally.
+  -- So we should grab a list of links and the slots they affect.
+  local soulLinks = getSoulLinks(player)
+  local soulLinkSlots = getCombinedMarkers(soulLinks)
+
   -- Now let's run down through those slots.
   for slot in Utilities.sortedPairs(allowedSlots) do
     -- We'll do some special handling for misc/holster
@@ -196,6 +272,16 @@ local function getAllowedSlots(player)
     -- If the slot is cursed and not unlocked, we'll move on
     if Inventory.isCursedSlot(player, slot) and not unlockedSlots[slot] then
       goto nextSlot
+    end
+
+    -- If the slot is synced and already closed, we'll also move on.
+    if soulLinkSlots[slot] == SwEnum.SlotMark.CLOSED then
+      goto nextSlot
+    end
+
+    -- Otherwise, if the slot is synced and open, we should mark it as "TO_CLOSE".
+    if soulLinkSlots[slot] == SwEnum.SlotMark.OPEN then
+      soulLinkSlots[slot] = SwEnum.SlotMark.TO_CLOSE
     end
 
     -- Now get subslots
@@ -280,6 +366,9 @@ local function getAllowedSlots(player)
       end
     end
   end
+
+  -- Lastly, for soul links, close the TO_CLOSE slots.
+  closeSoulLinkSlots(soulLinks, soulLinkSlots)
 
   return outEmpty, outFull
 end
@@ -562,6 +651,10 @@ Event.levelLoad.add("switchBuilds", { order = "enemySubstitutions", sequence = -
   -- print("Starting for " .. CurrentLevel.getDepth() .. "-" .. CurrentLevel.getFloor())
 
   mapChanceSettings()
+
+  -- This is some new code for soul links!
+  -- We'll need to reset all the soul link slot markers.
+  resetSoulLinkMarkers()
 
   for i, p in ipairs(Player.getPlayerEntities()) do
     -- Stair immunity prevents pain-on-equip items from causing pain.
