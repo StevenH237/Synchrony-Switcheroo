@@ -17,12 +17,6 @@ end
 -- ENUMS --
 --#region--
 
-module.ReplaceMode = Enum.sequence {
-  EXISTING   = entry(1, Text.ReplaceMode.Existing),
-  EMPTY      = entry(2, Text.ReplaceMode.Empty),
-  EVERYTHING = entry(3, Text.ReplaceMode.Everything)
-}
-
 do
   local floors = {
     EXTRA_BOSS         = entry(25, Text.Floors.ExtraStoryBoss),
@@ -43,11 +37,14 @@ do
   module.AllowedFloors = Enum.bitmask(floors)
 end
 
-module.FloorPresets = Enum.sequence {
-  ALL_FLOORS    = entry(0x750FFFFF, Text.FloorPresets.AllFloors),
-  FIRST_OF_ZONE = entry(0x24011111, Text.FloorPresets.FirstOfZone),
-  START_OF_RUN  = entry(0x04000001, Text.FloorPresets.StartOfRun),
-  POST_BOSSES   = entry(0x20011110, Text.FloorPresets.PostBosses)
+module.CharmsAlgorithm = Enum.sequence {
+  ADD_ONE = entry(1, Text.CharmsAlgorithms.Simple)
+}
+
+module.DontGiveGold = Enum.sequence {
+  DONT_BAN = entry(0, Text.Bans.Giving.Allow),
+  BAN      = entry(1, Text.Bans.Giving.DontAllow),
+  DYNAMIC  = entry(2, Text.Bans.Giving.DynamicGold)
 }
 
 module.DontTake = Enum.sequence {
@@ -56,10 +53,17 @@ module.DontTake = Enum.sequence {
   DONT_TAKE     = entry(2, Text.Bans.Taking.DontTake)
 }
 
-module.DontGiveGold = Enum.sequence {
-  DONT_BAN = entry(0, Text.Bans.Giving.Allow),
-  BAN      = entry(1, Text.Bans.Giving.DontAllow),
-  DYNAMIC  = entry(2, Text.Bans.Giving.DynamicGold)
+module.FloorPresets = Enum.sequence {
+  ALL_FLOORS    = entry(0x750FFFFF, Text.FloorPresets.AllFloors),
+  FIRST_OF_ZONE = entry(0x24011111, Text.FloorPresets.FirstOfZone),
+  START_OF_RUN  = entry(0x04000001, Text.FloorPresets.StartOfRun),
+  POST_BOSSES   = entry(0x20011110, Text.FloorPresets.PostBosses)
+}
+
+module.ReplaceMode = Enum.sequence {
+  EXISTING   = entry(1, Text.ReplaceMode.Existing),
+  EMPTY      = entry(2, Text.ReplaceMode.Empty),
+  EVERYTHING = entry(3, Text.ReplaceMode.Everything)
 }
 
 do
@@ -95,10 +99,6 @@ do
   module.SlotsBitmask = Enum.bitmask(Utilities.fastCopy(slotTable))
   module.SlotPresets = Enum.sequence(slotPresetsTable)
 end
-
-module.CharmsAlgorithm = Enum.sequence {
-  ADD_ONE = entry(1, Text.CharmsAlgorithms.Simple)
-}
 --#endregion
 
 return module
