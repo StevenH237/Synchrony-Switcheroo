@@ -1,7 +1,7 @@
 {
 	"namespace": "Switcheroo",
 	"displayName": "Switcheroo",
-	"version": "3.2.3",
+	"version": "3.3.1",
 	"synchronyVersion": "3.1.0",
 	"description": "Changes your build throughout the run!",
 	"author": "Nixill",
@@ -11,10 +11,10 @@
 	"banner": "SwitcherooBanner.png",
 	"tags": [],
 	"name": "Switcheroo_io_2237106",
-	"changelog": "PowerSettings dependency update (and wildcard it)",
-	"homepageURL": "https://mod.io/g/crypt/m/Switcheroo",
+	"changelog": "",
+	"homepageURL": "https://mod.io/g/crypt/m/switcheroo",
 	"modioID": "2237106",
 	"modioUserID": 12939888,
-	"pendingVersion": "3.2.3",
+	"pendingVersion": "3.3.1",
 	"visibility": 0
 }

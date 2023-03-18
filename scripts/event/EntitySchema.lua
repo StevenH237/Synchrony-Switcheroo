@@ -221,7 +221,7 @@ Event.entitySchemaLoadEntity.add("addComponents", { order = "overrides", sequenc
     addSoulLinkComponents(entity)
   elseif entity.item then
     addItemComponents(entity)
-  elseif entity.controllable and not (GameDLC.isSynchronyLoaded() and entity.Sync_possessable) then
+  elseif (entity.controllable and not (GameDLC.isSynchronyLoaded() and entity.Sync_possessable)) or entity.dad then
     addPlayerComponents(entity)
   end
 end)
