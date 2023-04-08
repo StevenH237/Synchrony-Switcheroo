@@ -20,6 +20,7 @@ local checkFlags = NixLib.checkFlags
 -- local RNG        = require "Switcheroo.debug.RNG"
 local SwEnum     = require "Switcheroo.Enum"
 local SwSettings = require "Switcheroo.Settings"
+local SwUtils    = require "Switcheroo.Utils"
 
 ---------------
 -- VARIABLES --
@@ -130,26 +131,10 @@ local function resetSoulLinkMarkers()
   for ent in Entities.entitiesWithComponents({ "Switcheroo_soulLinkItemGen" }) do
     local slots = {}
     for slot in pairs(ent.soulLinkInventory.slots) do
-      slots[slot] = SwEnum.SlotMark.OPEN
+      slots[slot] = ent.Switcheroo_soulLinkItemGen.defaultMark
     end
     ent.Switcheroo_soulLinkItemGen.slots = slots
   end
-end
-
--- Gets the topmost soul link from a given soul link.
-local function getTopSoulLink(ent)
-  -- Only soulLink entities are allowed here.
-  if not ent.soulLink then
-    return nil
-  end
-
-  -- A soulLink without a target is itself the topmost soul link.
-  if ent.soulLink.target == nil or ent.soulLink.target == 0 then
-    return ent
-  end
-
-  -- Otherwise, check for this target's target.
-  return getTopSoulLink(Entities.getEntityByID(ent.soulLink.target))
 end
 
 -- Gets all of the top-level soul link objects of which a given entity is a part.
@@ -161,9 +146,12 @@ local function getSoulLinks(ent)
   -- For all entities in the equipment...
   for i, v in ipairs(Utilities.map(ent.equipment.items, Entities.getEntityByID)) do
     if v.soulLink then
-      table.insert(links, getTopSoulLink(v))
+      table.insert(links, SwUtils.getTopSoulLink(v))
     end
   end
+
+  print(ent.name .. "#" .. ent.id .. " links:")
+  print(links)
 
   return links
 end
@@ -302,7 +290,7 @@ local function getAllowedSlots(player)
 
       -- Is this an item we can remove?
       local snt = item.Switcheroo_noTake
-      if snt and not (snt.unlessGiven and snt.wasGiven) then
+      if snt and not (snt.unlessGiven and item.Switcheroo_tracker.wasGiven) then
         goto nextSubslot
       end
 
@@ -352,8 +340,8 @@ local function getAllowedSlots(player)
         -- Is this an item we can remove?
         local heldItem = Entities.getEntityByID(content)
         if heldItem then
-          local sng = heldItem.Switcheroo_noGive
-          if not (sng and not (sng.unlessGiven and sng.wasGiven)) then
+          local snt = heldItem.Switcheroo_noTake
+          if not (snt and not (snt.unlessGiven and heldItem.Switcheroo_tracker.wasGiven)) then
             outFull[#outFull + 1] = {
               slotName = "holster",
               holster = hudItem,
@@ -627,6 +615,9 @@ local function changeItemsInSlots(player, slots)
         newEntity.Switcheroo_noTake.wasGiven = true
       end
 
+      -- Always track whether given, too.
+      newEntity.Switcheroo_tracker.wasGiven = true
+
       newEntity.itemNegateLowPercent.active = false
     end
 
@@ -634,6 +625,31 @@ local function changeItemsInSlots(player, slots)
       Inventory.swapWithHolster(player, holster)
     end
   end
+end
+
+-- This function actually handles everything!
+local function switchBuild(p)
+  -- Stair immunity prevents pain-on-equip items from causing pain.
+  local ddi = p.descentDamageImmunity.active
+  p.descentDamageImmunity.active = true
+
+  Try.catch(function()
+    -- First, we need to figure out which slots *can be* selected.
+    local emptySlots, fullSlots = getAllowedSlots(p)
+
+    -- Let's take a shortcut if that resulted in nothing.
+    if #emptySlots + #fullSlots == 0 then return end
+
+    -- Now let's actually select the slots.
+    -- Unlike in switcheroo v1, we won't handle clearing them here.
+    local slots = selectSlots(p, emptySlots, fullSlots)
+
+    -- And now let's deal with taking and giving items, as necessary.
+    changeItemsInSlots(p, slots)
+
+  end)
+
+  p.descentDamageImmunity.active = ddi
 end
 
 --#endregion (Functions)
@@ -655,33 +671,19 @@ Event.levelLoad.add("switchBuilds", { order = "enemySubstitutions", sequence = -
   resetSoulLinkMarkers()
 
   for i, p in ipairs(Player.getPlayerEntities()) do
-    -- Stair immunity prevents pain-on-equip items from causing pain.
-    local ddi = p.descentDamageImmunity.active
-    p.descentDamageImmunity.active = true
-
-    Try.catch(function()
-      -- First, we need to figure out which slots *can be* selected.
-      local emptySlots, fullSlots = getAllowedSlots(p)
-
-      -- Let's take a shortcut if that resulted in nothing.
-      if #emptySlots + #fullSlots == 0 then return end
-
-      -- Now let's actually select the slots.
-      -- Unlike in switcheroo v1, we won't handle clearing them here.
-      local slots = selectSlots(p, emptySlots, fullSlots)
-
-      -- And now let's deal with taking and giving items, as necessary.
-      changeItemsInSlots(p, slots)
-
-    end)
-
-    p.descentDamageImmunity.active = ddi
+    switchBuild(p)
   end
 
   FirstGen = false
 
   ::noRun::
   LastFloorBoss = CurrentLevel.isBoss()
+end)
+
+Event.objectSpawn.add("giveDadBuild", { order = "merge", filter = "dad", sequence = 1 }, function(ev)
+  if not canRunHere() then return end
+
+  switchBuild(ev.entity)
 end)
 
 --#endregion

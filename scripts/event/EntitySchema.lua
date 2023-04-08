@@ -119,6 +119,9 @@ Event.entitySchemaGenerate.add("checks", { order = "components", sequence = -1 }
 end)
 
 local function addItemComponents(entity)
+  -- Tracks whether an item was given by Switcheroo. Always given to items.
+  entity.Switcheroo_tracker = {}
+
   -- Should the item be exempt from giving?
   if itemNamesNotGiven[entity.name] then
     entity.Switcheroo_noGive = {}
@@ -212,6 +215,12 @@ end
 
 local function addSoulLinkComponents(entity)
   entity.Switcheroo_soulLinkItemGen = {}
+
+  local slots = {}
+  for slot in pairs(entity.soulLinkInventory.slots) do
+    slots[slot] = SwEnum.SlotMark.OPEN
+  end
+  entity.Switcheroo_soulLinkItemGen.slots = slots
 end
 
 Event.entitySchemaLoadEntity.add("addComponents", { order = "overrides", sequence = 2 }, function(ev)
