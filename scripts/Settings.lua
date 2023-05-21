@@ -152,6 +152,7 @@ end
 --#region-----
 
 PowerSettings.autoRegister()
+PowerSettings.saveVersionNumber()
 
 PowerSettings.group {
   name = "Replacement chances",
@@ -168,8 +169,7 @@ PowerSettings.shared.percent {
   id = "replacement.advancedEmptyChance",
   order = 1,
   default = 1,
-  step = 0.05,
-  editAsString = true
+  step = 0.01
 }
 
 PowerSettings.shared.number {
@@ -188,8 +188,7 @@ PowerSettings.shared.percent {
   id = "replacement.advancedFullSelectChance",
   order = 3,
   default = 1,
-  step = 0.05,
-  editAsString = true
+  step = 0.01
 }
 
 PowerSettings.shared.percent {
@@ -199,8 +198,7 @@ PowerSettings.shared.percent {
   order = 4,
   visibleIf = isAdvanced(),
   default = 1,
-  step = 0.05,
-  editAsString = true
+  step = 0.01
 }
 
 PowerSettings.shared.number {
