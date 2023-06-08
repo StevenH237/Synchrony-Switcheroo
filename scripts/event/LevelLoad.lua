@@ -150,8 +150,8 @@ local function getSoulLinks(ent)
     end
   end
 
-  print(ent.name .. "#" .. ent.id .. " links:")
-  print(links)
+  -- print(ent.name .. "#" .. ent.id .. " links:")
+  -- print(links)
 
   return links
 end

@@ -73,7 +73,7 @@ Event.objectSoulLink.add("switcherooLink", { order = "inventory", sequence = -1 
   end
 
   for k in Utilities.sortedPairs(itemsToDelete) do
-    print(k)
+    -- print(k)
     Inventory.drop(ev.target, k)
     Object.delete(k)
   end
