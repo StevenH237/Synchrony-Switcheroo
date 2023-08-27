@@ -124,6 +124,17 @@ end
 -- ACTIONS --
 --#region----
 
+local function setPreset(values)
+  local keys = SettingsStorage.listKeys("mod.Switcheroo", PowerSettings.Layer.REMOTE_OVERRIDE)
+  for i, v in ipairs(keys) do
+    if values[v] ~= nil then
+      SettingsStorage.set(v, values[v], PowerSettings.Layer.REMOTE_PENDING)
+    else
+      SettingsStorage.set(v, nil, PowerSettings.Layer.REMOTE_PENDING)
+    end
+  end
+end
+
 --#endregion
 
 -------------
@@ -153,6 +164,140 @@ end
 
 PowerSettings.autoRegister()
 PowerSettings.saveVersionNumber()
+
+PowerSettings.group {
+  name = "Use a preset",
+  desc = "Select some preset to play with!",
+  id = "presets",
+  order = -2
+}
+
+--#region Presets
+
+PowerSettings.shared.label {
+  name = "Fun modes!",
+  id = "presets.funModesLabel",
+  order = 0,
+  small = true
+}
+
+PowerSettings.shared.action {
+  name = "Default rules",
+  id = "presets.default",
+  desc = "Switcheroo's default rules",
+  order = 1,
+  action = function()
+    setPreset {}
+    Menu.close()
+  end
+}
+
+PowerSettings.shared.action {
+  name = "Transmute only",
+  id = "presets.transmute",
+  desc = "Only existing items are changed! Empty slots are not filled.",
+  order = 2,
+  action = function()
+    setPreset {
+      ["mod.Switcheroo.replacement.advancedEmptyChance"] = 0,
+      ["mod.Switcheroo.dontGive.magicFood"] = false
+    }
+    Menu.close()
+  end
+}
+
+PowerSettings.shared.action {
+  name = "Single build",
+  id = "presets.single",
+  desc = "Get given a single build at the start of the run!",
+  order = 3,
+  action = function()
+    setPreset {
+      ["mod.Switcheroo.allowedFloors"] = SwEnum.FloorPresets.START_OF_RUN
+    }
+    Menu.close()
+  end
+}
+
+PowerSettings.shared.action {
+  name = "One per floor",
+  id = "presets.onePerFloor",
+  desc = "Get given one random item per floor!",
+  order = 4,
+  action = function()
+    setPreset {
+      ["mod.Switcheroo.replacement.advancedMaxItems"] = 1
+    }
+  end
+}
+
+PowerSettings.shared.label {
+  name = "Old versions",
+  id = "presets.oldVersionsLabel",
+  order = 100,
+  small = true
+}
+
+PowerSettings.shared.action {
+  name = "1.0.0 - 1.3.0",
+  id = "presets.version1_0_0",
+  desc = "Default rules in versions 1.0.0 to 1.3.0",
+  order = 101,
+  action = function()
+    setPreset {
+      ["mod.Switcheroo.dontGive.magicFood"] = false,
+      ["mod.Switcheroo.dontGive.visionReducers"] = false,
+      ["mod.Switcheroo.dontGive.moveAmplifiers"] = false,
+      ["mod.Switcheroo.dontGive.goldItems"] = SwEnum.DontGiveGold.DONT_BAN,
+      ["mod.Switcheroo.generators"] = { "itemPoolSecret" },
+      ["mod.Switcheroo.slots.allowed"] = SwEnum.SlotPresets.ALL_BUT_SHIELD,
+      ["mod.Switcheroo.dontGive.rhythmIgnoringItems"] = false,
+      ["mod.Switcheroo.dontGive.breakableWeapons"] = false,
+      ["mod.Switcheroo.dontGive.breakableShovels"] = false
+    }
+    Menu.close()
+  end
+}
+
+PowerSettings.shared.action {
+  name = "2.0.0",
+  id = "presets.version2_0_0",
+  desc = "Default rules in version 2.0.0",
+  order = 102,
+  action = function()
+    setPreset {
+      ["mod.Switcheroo.generators"] = { "itemPoolSecret" },
+      ["mod.Switcheroo.slots.allowed"] = SwEnum.SlotPresets.ALL_BUT_SHIELD,
+      ["mod.Switcheroo.dontGive.rhythmIgnoringItems"] = false,
+      ["mod.Switcheroo.dontGive.breakableWeapons"] = false,
+      ["mod.Switcheroo.dontGive.breakableShovels"] = false
+    }
+    Menu.close()
+  end
+}
+
+PowerSettings.shared.action {
+  name = "3.0.0 - 3.2.3",
+  id = "presets.version3_0_0",
+  desc = "Default rules in versions 3.0.0 to 3.2.3",
+  order = 102,
+  action = function()
+    setPreset {
+      ["mod.Switcheroo.dontGive.rhythmIgnoringItems"] = false,
+      ["mod.Switcheroo.dontGive.breakableWeapons"] = false,
+      ["mod.Switcheroo.dontGive.breakableShovels"] = false
+    }
+    Menu.close()
+  end
+}
+
+--#endregion Presets
+
+PowerSettings.shared.label {
+  name = "",
+  id = "blank1",
+  order = -1
+}
 
 PowerSettings.group {
   name = "Replacement chances",
@@ -373,7 +518,8 @@ PowerSettings.entitySchema.bool {
 
 PowerSettings.entitySchema.bool {
   name = "Deadly items",
-  desc = "Whether or not items that are only banned as \"kill player on pickup\" should be removed from Switcheroo's item pool.",
+  desc =
+  "Whether or not items that are only banned as \"kill player on pickup\" should be removed from Switcheroo's item pool.",
   id = "dontGive.deadlyItems",
   order = 100,
   default = true,
