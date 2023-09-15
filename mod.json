@@ -2,11 +2,15 @@
 	"namespace": "Switcheroo",
 	"displayName": "Switcheroo",
 	"version": "3.3.2",
-	"synchronyVersion": "3.1.0",
+	"synchronyVersion": "3.7.3",
 	"description": "Changes your build throughout the run!",
 	"author": "Nixill",
-	"dependencies": {"PowerSettings_io_2237104":true},
-	"api": {"scriptPath":"scripts"},
+	"dependencies": {
+		"PowerSettings_io_2237104": true
+	},
+	"api": {
+		"scriptPath": "scripts"
+	},
 	"icon": "SwitcherooIcon.png",
 	"banner": "SwitcherooBanner.png",
 	"tags": [],
