@@ -3,5 +3,5 @@
 
 - **Added** compatibility with Spell Crafting:
   - Combo spells are in the default item pool with the same weight as the less likely of the two component spells (for example, Star Shower is as likely to show up as Transmute, Earthen Shield is as likely as Earth, and Echoed Pulse as likely as Pulse).
-  - When Spell Crafting is loaded, Switcheroo under default rules will give four items to a slot that can hold that many, rather than three.
+  - [Version 3.4.0.1] When Spell Crafting is loaded, Switcheroo under default rules will give four items to a slot that can hold that many, rather than three.
 - Fixed the dates shown in the 3.3.x changelog.

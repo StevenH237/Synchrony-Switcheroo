@@ -12,6 +12,8 @@ local PowerSettings = require "PowerSettings.PowerSettings"
 
 local SwEnum   = require "Switcheroo.Enum"
 local SwImport = require "Switcheroo.compat.Import"
+
+local HasSCraft, SCraft = pcall(require, "SCraft.scripts.Common")
 --#endregion Imports
 
 ---------------
@@ -921,7 +923,7 @@ PowerSettings.shared.number {
   treeKey = "mod.Switcheroo.activation.slots.capacity",
   order = 3,
   visibility = Settings.Visibility.ADVANCED,
-  default = 3,
+  default = HasSCraft and 4 or 3,
   minimum = 1
 }
 
