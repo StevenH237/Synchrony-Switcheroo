@@ -109,7 +109,7 @@ local function canRunHere()
 
   -- Are we in one of the first five zones, and one of the first four floors of that zone?
   if CurrentLevel.getDepth() >= 1 and CurrentLevel.getDepth() <= 5
-      and CurrentLevel.getFloor() >= 1 and CurrentLevel.getFloor() <= 4 then
+    and CurrentLevel.getFloor() >= 1 and CurrentLevel.getFloor() <= 4 then
     local floor = CurrentLevel.getDepth() * 4 + CurrentLevel.getFloor() - 5
     return checkFlags(setting, 2 ^ floor)
   end
@@ -276,9 +276,9 @@ local function getAllowedSlots(player)
     if slot == "misc" then
       cap = getCharmCount(player)
     elseif (SwSettings.get("slots.reduce")) and slot ~= "misc" then
-      cap = math.min(Inventory.getSlotCapacity(player, slot), SwSettings.get("slots.capacity"))
+      cap = math.min(Inventory.getSlotCapacity(player, slot) or 999, SwSettings.get("slots.capacity"))
     else
-      cap = NixLib.median(Inventory.getSlotCapacity(player, slot), SwSettings.get("slots.capacity"), #Inventory)
+      cap = NixLib.median(Inventory.getSlotCapacity(player, slot) or 999, SwSettings.get("slots.capacity"), #Inventory)
     end
 
     -- Get the filled subslots first
@@ -646,7 +646,6 @@ local function switchBuild(p)
 
     -- And now let's deal with taking and giving items, as necessary.
     changeItemsInSlots(p, slots)
-
   end)
 
   p.descentDamageImmunity.active = ddi

@@ -8,6 +8,8 @@ local SwSettings = require "Switcheroo.Settings"
 
 local NixLib = require "NixLib.NixLib"
 
+local HasSCraft, SCraft = pcall(require, "SCraft.scripts.Common")
+
 local function copyToSet(table)
   local out = {}
   for i, v in ipairs(table) do
@@ -143,8 +145,8 @@ local function addItemComponents(entity)
 
     -- Is it levitation, and is levitation banned?
     if entity.itemAttackableFlags and entity.itemAttackableFlags.remove and
-        NixLib.checkFlags(entity.itemAttackableFlags.remove, Attack.Flag.TRAP) and
-        componentsNotGiven.Switcheroo_levitation then
+      NixLib.checkFlags(entity.itemAttackableFlags.remove, Attack.Flag.TRAP) and
+      componentsNotGiven.Switcheroo_levitation then
       entity.Switcheroo_noGive = {}
       goto noTake
     end
@@ -205,6 +207,8 @@ local function addItemComponents(entity)
     entity.Switcheroo_itemPoolSwitcheroo = { weights = Utilities.fastCopy(entity.itemPoolSecret.weights) }
   elseif entity.itemSlot and entity.itemSlot.name == "shield" and entity.itemPoolBlackChest then
     -- Otherwise, is it a shield?
+    -- (is this fallback even used any more?)
+    print("Shield fallback used")
     entity.Switcheroo_itemPoolSwitcheroo = { weights = Utilities.fastCopy(entity.itemPoolBlackChest.weights) }
   end
 end
@@ -232,5 +236,34 @@ Event.entitySchemaLoadEntity.add("addComponents", { order = "overrides", sequenc
     addItemComponents(entity)
   elseif (entity.controllable and not (GameDLC.isSynchronyLoaded() and entity.Sync_possessable)) or entity.dad then
     addPlayerComponents(entity)
+  end
+end)
+
+local SCraft_Chances = {
+  Fireball = 10,
+  Freeze = 5,
+  Heal = 8,
+  Bomb = 8,
+  Shield = 8,
+  Transmute = 3,
+  Earth = 5,
+  Pulse = 10,
+  Berserk = 5,
+  Dash = 5
+}
+
+Event.entitySchemaLoadEntity.add("addModCompat", { order = "overrides", sequence = 1000 }, function(ev)
+  local entity = ev.entity
+
+  if HasSCraft then
+    if entity.SCraft_isSpellCombo then
+      local cat1 = entity.SCraft_isSpellCombo.categories[1]
+      local cat2 = entity.SCraft_isSpellCombo.categories[2]
+      local chance1 = SCraft_Chances[cat1]
+      local chance2 = SCraft_Chances[cat2]
+      entity.Switcheroo_itemPoolSwitcheroo = {
+        weights = { math.min(chance1, chance2) }
+      }
+    end
   end
 end)
